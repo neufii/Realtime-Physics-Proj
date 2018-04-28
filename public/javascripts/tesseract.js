@@ -13,8 +13,8 @@ function init() {
 	scene = new THREE.Scene();
 
 	scene.background = new THREE.CubeTextureLoader()
-					.setPath( '../images/' )
-					.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
+					.setPath( '../images/tesseract/' )
+					.load( [ 'nebula-xpos.png', 'nebula-xneg.png', 'nebula-ypos.png', 'nebula-yneg.png', 'nebula-zpos.png', 'nebula-zneg.png' ] );
 
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;

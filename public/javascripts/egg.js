@@ -13,7 +13,7 @@ function init() {
 	scene = new THREE.Scene();
 
 	scene.background = new THREE.CubeTextureLoader()
-					.setPath( '../images/' )
+					.setPath( '../images/egg/' )
 					.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
 
 	// CAMERA
