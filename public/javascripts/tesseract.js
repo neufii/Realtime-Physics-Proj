@@ -48,14 +48,6 @@ function init() {
 	stats.domElement.style.zIndex = 100;
 	container.appendChild( stats.domElement );
 
-
-	// //COLOR SKYBOX & FOG
-	// var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-	// var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.BackSide } );
-	// var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-	// scene.add(skyBox);
-	// scene.fog = new THREE.FogExp2( 0x000000, 0.00025 );
-
 	// LIGHT
 
 	// spotlight #1 -- yellow, dark shadow
@@ -106,7 +98,7 @@ function init() {
 
 
 	var tesseractGeometry = new THREE.BoxBufferGeometry(15,15,15);
-	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0x002233, transparent:true, opacity:0.6, refractionRatio: 0.95,envMap: scene.background, shininess: 10, side: THREE.DoubleSide } );
+	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0x00ffff, transparent:true, opacity:0.8, refractionRatio: 0.95,envMap: scene.background, shininess: 20, side: THREE.DoubleSide } );
 	tesseractMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	tesseract = new THREE.Mesh( tesseractGeometry, tesseractMaterial );
 	tesseract.position.set(0,0,0);
@@ -128,9 +120,9 @@ function init() {
 	{
 	    uniforms: 
 		{ 
-			"c":   { type: "f", value: 0.0 },
-			"p":   { type: "f", value: 10 },
-			glowColor: { type: "c", value: new THREE.Color(0xffffff) },
+			"c":   { type: "f", value: 0.8 },
+			"p":   { type: "f", value: 1.1 },
+			glowColor: { type: "c", value: new THREE.Color(0x00ffff) },
 			viewVector: { type: "v3", value: camera.position }
 		},
 		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
@@ -142,7 +134,7 @@ function init() {
 
 	this.tesseractGlow = new THREE.Mesh( tesseractGeometry.clone(), customMaterial.clone() );
     tesseractGlow.position = tesseract.position;
-	tesseractGlow.scale.multiplyScalar(1.0);
+	tesseractGlow.scale.multiplyScalar(1.1);
 	scene.add(tesseractGlow);
 
 	// POST
@@ -151,10 +143,6 @@ function init() {
 
 	effectBloom = new THREE.BloomPass( 10, 25, 8, 256 );
 	composer.addPass( effectBloom );
-
-	effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-	//composer.addPass( effectCopy );
-
 
 }
 
