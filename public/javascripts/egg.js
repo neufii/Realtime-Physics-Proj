@@ -1,8 +1,10 @@
 var container, scene, camera, renderer, controls, stats, composer;
-var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 
 var sphere;
+
+var effectFXAA, bloomPass, renderScene;
+var composer;
 
 init();
 animate();
@@ -36,8 +38,7 @@ function init() {
 	container.appendChild(renderer.domElement);
 
 	// EVENTS
-	THREEx.WindowResize(renderer, camera);
-	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
+	window.addEventListener( 'resize', onWindowResize, false );
 
 	// CONTROLS
 	controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -48,14 +49,6 @@ function init() {
 	stats.domElement.style.bottom = '0px';
 	stats.domElement.style.zIndex = 100;
 	container.appendChild( stats.domElement );
-
-
-	// //COLOR SKYBOX & FOG
-	// var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-	// var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.BackSide } );
-	// var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-	// scene.add(skyBox);
-	// scene.fog = new THREE.FogExp2( 0x000000, 0.00025 );
 
 	// LIGHT
 
@@ -106,7 +99,6 @@ function init() {
 	scene.add( new THREE.AmbientLight( 0xffffff, 1 ) );
 
 
-
 	var points = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
 
@@ -126,12 +118,12 @@ function init() {
 	scene.add(egg);
 
 	//FLOOR
-	var floorMaterial = new THREE.MeshLambertMaterial( { color: 0x111111, side: THREE.DoubleSide } );
-	var floorGeometry = new THREE.PlaneGeometry(100, 100, 10, 10);
-	var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-	floor.position.y = -10;
-	floor.rotation.x = Math.PI / 2;
-	floor.receiveShadow = true;
+	// var floorMaterial = new THREE.MeshLambertMaterial( { color: 0x111111, side: THREE.DoubleSide } );
+	// var floorGeometry = new THREE.PlaneGeometry(100, 100, 10, 10);
+	// var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+	// floor.position.y = -10;
+	// floor.rotation.x = Math.PI / 2;
+	// floor.receiveShadow = true;
 	//scene.add(floor);
 
 
@@ -157,31 +149,41 @@ function init() {
 	scene.add( eggGlow);
 
 	// POST
-	composer = new THREE.EffectComposer( renderer );
-	composer.addPass( new THREE.RenderPass( scene, camera ) );
-
-	effectBloom = new THREE.BloomPass( 10, 25, 8, 256 );
-	composer.addPass( effectBloom );
-
-	effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-	//composer.addPass( effectCopy );
+	// renderScene = new THREE.RenderPass( scene, camera );
+	// effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+	// effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+	// bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.12, 0.92); //1.0, 9, 0.5, 512);
+	// bloomPass.renderToScreen = true;
+	// composer = new THREE.EffectComposer( renderer );
+	// composer.setSize( window.innerWidth, window.innerHeight );
+	// composer.addPass( renderScene );
+	// composer.addPass( effectFXAA );
+	// composer.addPass( bloomPass );
+	// renderer.gammaInput = true;
+	// renderer.gammaOutput = true;
 
 
 }
 
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+
+	// Composer
+	// composer.setSize( window.innerWidth, window.innerHeight );
+	effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight );
+}
+
 function animate() 
 {
-    requestAnimationFrame( animate );
+  requestAnimationFrame( animate );
 	render();		
 	update();
 }
 function update()
 {
-	if ( keyboard.pressed("z") ) 
-	{ 
-		// do something
-	}
-	
+
 	controls.update();
 	stats.update();
 	eggGlow.material.uniforms.viewVector.value = 
@@ -191,5 +193,5 @@ function update()
 function render() 
 {
 	renderer.render( scene, camera );
-	composer.render()
+	// composer.render()
 }

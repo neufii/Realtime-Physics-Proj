@@ -63,6 +63,9 @@ Object.assign( THREE.EffectComposer.prototype, {
 		this.passes.push( pass );
 
 		var size = this.renderer.getDrawingBufferSize();
+		console.log(pass)
+		console.log(size)
+		console.log(pass.setSize)
 		pass.setSize( size.width, size.height );
 
 	},
