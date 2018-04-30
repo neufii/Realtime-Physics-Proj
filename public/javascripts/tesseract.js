@@ -19,6 +19,8 @@ function init() {
 					.setPath( '../images/tesseract/' )
 					.load( [ 'nebula-xpos.png', 'nebula-xneg.png', 'nebula-ypos.png', 'nebula-yneg.png', 'nebula-zpos.png', 'nebula-zneg.png' ] );
 
+	// scene.background = new THREE.Color( 0x000000 )
+
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
@@ -89,7 +91,7 @@ function init() {
 	scene.add( new THREE.AmbientLight( 0xffffff, 1 ) );
 
 	var tesseractGeometry = new THREE.BoxGeometry(15,15,15);
-	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0x00ffff, transparent:true, opacity:0.4, refractionRatio: 0.85,envMap: scene.background, shininess: 30, side: THREE.DoubleSide } );
+	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, transparent:true, opacity:0.4, refractionRatio: 0.85,envMap: scene.background, shininess: 30, side: THREE.DoubleSide } );
 	tesseractMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	tesseract = new THREE.Mesh( tesseractGeometry, tesseractMaterial );
 	tesseract.position.set(0,0,0);
@@ -102,7 +104,7 @@ function init() {
 		{ 
 			"c":   { type: "f", value: 1.5 },
 			"p":   { type: "f", value: 2.0 },
-			glowColor: { type: "c", value: new THREE.Color(0x00d1ff) },
+			glowColor: { type: "c", value: new THREE.Color(0x009599) },
 			viewVector: { type: "v3", value: camera.position }
 		},
 		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
@@ -114,14 +116,14 @@ function init() {
 
 	this.tesseractGlow = new THREE.Mesh( tesseractGeometry.clone(), customMaterial.clone() );
   tesseractGlow.position = tesseract.position;
-	tesseractGlow.scale.multiplyScalar(1.25);
-	// scene.add(tesseractGlow);
+	tesseractGlow.scale.multiplyScalar(1.005);
+	scene.add(tesseractGlow);
 
 	// POST
 	renderScene = new THREE.RenderPass( scene, camera );
 	effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
 	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.12, 0.92); //1.0, 9, 0.5, 512);
+	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 2.0, 0.8, 0.5);
 	bloomPass.renderToScreen = true;
 	composer = new THREE.EffectComposer( renderer );
 	composer.setSize( window.innerWidth, window.innerHeight );
