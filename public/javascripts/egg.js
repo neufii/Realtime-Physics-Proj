@@ -141,7 +141,7 @@ function init() {
 		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
 		side: THREE.FrontSide,
 		blending: THREE.AdditiveBlending,
-		transparent: true
+		transparent: true,map: THREE.ImageUtils.loadTexture('../images/egg/iceflake.jpg',THREE.SphericalRefractionMapping)
 	}   );
 
 	this.eggGlow = new THREE.Mesh( eggGeometry.clone(), customMaterial.clone() );
