@@ -109,12 +109,13 @@ function init() {
 	}
 
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
-	var eggMaterial = new THREE.MeshPhongMaterial( { color: 0xffc560, transparent:true, opacity:0.6, refractionRatio: 0.95,envMap: scene.background, shininess: 10 } );
+	var eggMaterial = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('../images/egg/iceflake.jpg',THREE.SphericalRefractionMapping), color: 0xffc560, transparent:true, opacity:0.7, refractionRatio: 0.75,envMap: scene.background, shininess: 3 } );
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	egg = new THREE.Mesh( eggGeometry, eggMaterial );
 	egg.position.set(0,0,0);
 	egg.castShadow = true; 
 	camera.lookAt(egg.position);
+
 	scene.add(egg);
 
 	//FLOOR
