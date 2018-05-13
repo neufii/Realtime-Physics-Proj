@@ -1,5 +1,6 @@
 var container, scene, camera, renderer, controls, stats, composer;
 var clock = new THREE.Clock();
+var tick = 0;
 
 var sphere;
 
@@ -62,7 +63,7 @@ function init() {
 
 	// must enable shadow casting ability for the light
 	spotlight.castShadow = true;
-	scene.add(spotlight);
+	//scene.add(spotlight);
 	// spotlight #2 -- red, light shadow
 	var spotlight2 = new THREE.SpotLight(0xffffff);
 	spotlight2.position.set(60,150,-60);
@@ -71,7 +72,7 @@ function init() {
 	spotlight2.shadow.mapSize.height = 1024; // default is 512
 	spotlight2.intensity = 0.5;
 	spotlight2.castShadow = true;
-	scene.add(spotlight2);
+	//scene.add(spotlight2);
 
 	
 	// spotlight #3
@@ -82,7 +83,7 @@ function init() {
 	spotlight3.shadow.mapSize.width = 1024; // default is 512
 	spotlight3.shadow.mapSize.height = 1024; // default is 512
 
-	scene.add(spotlight3);
+	//scene.add(spotlight3);
 
 	// change the direction this spotlight is facing
 	var lightTarget = new THREE.Object3D();
@@ -93,10 +94,31 @@ function init() {
 
 	var pointLight = new THREE.PointLight(0xffffff);
 	pointLight.position.set(0,0,0)
-	scene.add(pointLight)
+	//scene.add(pointLight)
 
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 1 ) );
+
+
+
+	//LAVA
+	var textureLoader = new THREE.TextureLoader();
+	uniforms = {
+		fogDensity: { value: 0.45 },
+		fogColor: { value: new THREE.Vector3( 0, 0, 0 ) },
+		time: { value: 1.0 },
+		uvScale: { value: new THREE.Vector2( 3.0, 1.0 ) },
+		texture1: { value: textureLoader.load( '../images/egg/cloud.png' ) },
+		texture2: { value: textureLoader.load( '../images/egg/lavatile.jpg' ) }
+				};
+	uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
+	uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
+	var size = 0.65;
+	var material = new THREE.ShaderMaterial( {
+		uniforms: uniforms,
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+	} );
 
 
 	var points = [];
@@ -108,8 +130,10 @@ function init() {
     	points.push( point );
 	}
 
+	eggTexture = new THREE.TextureLoader().load('../images/egg/ice.jpg' );
+
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
-	var eggMaterial = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture('../images/egg/iceflake.jpg',THREE.SphericalRefractionMapping), color: 0xffc560, transparent:true, opacity:0.7, refractionRatio: 0.75,envMap: scene.background, shininess: 3 } );
+	var eggMaterial = new THREE.MeshPhongMaterial( { map: eggTexture, color: 0xffc560, transparent:true, opacity:0.7, refractionRatio: 0.3,envMap: scene.background, shininess: 3,combine: THREE.MixOperation, reflectivity: 0.3  } );
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	egg = new THREE.Mesh( eggGeometry, eggMaterial );
 	egg.position.set(0,0,0);
@@ -117,15 +141,6 @@ function init() {
 	camera.lookAt(egg.position);
 
 	scene.add(egg);
-
-	//FLOOR
-	// var floorMaterial = new THREE.MeshLambertMaterial( { color: 0x111111, side: THREE.DoubleSide } );
-	// var floorGeometry = new THREE.PlaneGeometry(100, 100, 10, 10);
-	// var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-	// floor.position.y = -10;
-	// floor.rotation.x = Math.PI / 2;
-	// floor.receiveShadow = true;
-	//scene.add(floor);
 
 
 	var customMaterial = new THREE.ShaderMaterial( 
@@ -137,17 +152,27 @@ function init() {
 			glowColor: { type: "c", value: new THREE.Color(0xffffff) },
 			viewVector: { type: "v3", value: camera.position }
 		},
-		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
-		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
+		fragmentShader: document.getElementById( 'glowFragmentShader' ).textContent,
 		side: THREE.FrontSide,
 		blending: THREE.AdditiveBlending,
-		transparent: true,map: THREE.ImageUtils.loadTexture('../images/egg/iceflake.jpg',THREE.SphericalRefractionMapping)
+		transparent: true,
 	}   );
 
 	this.eggGlow = new THREE.Mesh( eggGeometry.clone(), customMaterial.clone() );
     eggGlow.position = egg.position;
 	eggGlow.scale.multiplyScalar(1.2);
 	scene.add( eggGlow);
+
+	var renderModel = new THREE.RenderPass( scene, camera );
+	var effectBloom = new THREE.BloomPass( 1.25 );
+	var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
+	effectFilm.renderToScreen = true;
+	composer = new THREE.EffectComposer( renderer );
+	composer.addPass( renderModel );
+	composer.addPass( effectBloom );
+	composer.addPass( effectFilm );
+
 
 	// POST
 	// renderScene = new THREE.RenderPass( scene, camera );
@@ -173,12 +198,11 @@ function onWindowResize() {
 
 	// Composer
 	// composer.setSize( window.innerWidth, window.innerHeight );
-	effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight );
 }
 
 function animate() 
 {
-  requestAnimationFrame( animate );
+  	requestAnimationFrame( animate );
 	render();		
 	update();
 }
@@ -193,6 +217,11 @@ function update()
 }
 function render() 
 {
+	var delta = 5 * clock.getDelta();
+				uniforms.time.value += 0.2 * delta;
+				renderer.clear();
+				composer.render( 0.01 );
+
 	renderer.render( scene, camera );
 	// composer.render()
 }
