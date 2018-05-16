@@ -1,6 +1,14 @@
 var container, scene, camera, renderer, controls, stats, composer;
 var clock = new THREE.Clock();
 
+// Particle
+// var engine
+var particleSystem, particleUniforms, particleGeometry, particles;
+var num_particles = 400
+var positions = [];
+var colors = [];
+var sizes = [];
+
 // Composer
 var effectFXAA, bloomPass, renderScene;
 var composer;
@@ -83,15 +91,11 @@ function init() {
 	spotlight3.target = lightTarget;
 	renderer.shadowMap.enabled = true;
 
-	var pointLight = new THREE.PointLight(0xffffff);
-	pointLight.position.set(0,0,0)
-	scene.add(pointLight)
-
 	//ADJUST SHADOW DARKNESS
-	scene.add( new THREE.AmbientLight( 0xffffff, 1 ) );
+	scene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
 
 	var tesseractGeometry = new THREE.BoxGeometry(15,15,15);
-	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, transparent:true, opacity:0.4, refractionRatio: 0.85,envMap: scene.background, shininess: 30, side: THREE.DoubleSide } );
+	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0x00BDFF, transparent:true, opacity:0.5, refractionRatio: 0.95,envMap: scene.background, side: THREE.DoubleSide } );
 	tesseractMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	tesseract = new THREE.Mesh( tesseractGeometry, tesseractMaterial );
 	tesseract.position.set(0,0,0);
@@ -100,11 +104,11 @@ function init() {
 
 	var customMaterial = new THREE.ShaderMaterial( 
 	{
-	    uniforms: 
+		uniforms: 
 		{ 
-			"c":   { type: "f", value: 1.5 },
-			"p":   { type: "f", value: 2.0 },
-			glowColor: { type: "c", value: new THREE.Color(0x009599) },
+			"c":   { type: "f", value: 0.2 },
+			"p":   { type: "f", value: 1.0 },
+			glowColor: { type: "c", value: new THREE.Color(0x9ABBED) },
 			viewVector: { type: "v3", value: camera.position }
 		},
 		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
@@ -114,16 +118,18 @@ function init() {
 		transparent: true
 	}   );
 
-	this.tesseractGlow = new THREE.Mesh( tesseractGeometry.clone(), customMaterial.clone() );
+	this.tesseractGlow = new THREE.Mesh( tesseractGeometry.clone() , customMaterial.clone() );
   tesseractGlow.position = tesseract.position;
 	tesseractGlow.scale.multiplyScalar(1.005);
-	scene.add(tesseractGlow);
+	// scene.add(tesseractGlow);
 
 	// POST
 	renderScene = new THREE.RenderPass( scene, camera );
 	effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
 	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 2.0, 0.8, 0.5);
+	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.02, 0.5, 0.2);
+	// renderScene.renderToScreen = true;
+	// effectFXAA.renderToScreen = true;
 	bloomPass.renderToScreen = true;
 	composer = new THREE.EffectComposer( renderer );
 	composer.setSize( window.innerWidth, window.innerHeight );
@@ -132,6 +138,109 @@ function init() {
 	composer.addPass( bloomPass );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
+
+
+	// 
+	// Adding Light Source and Object to the center of the Cube
+	// 
+
+	var pointLight = new THREE.PointLight(0xffffff);
+	pointLight.position.set(0,0,0)
+	scene.add(pointLight)
+
+	// particleUniforms = {
+	// 	texture:   { value: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ) }
+	// };
+
+	// particleGeometry = new THREE.BufferGeometry();
+
+	// var shaderMaterial = new THREE.ShaderMaterial( {
+	// 	uniforms:       particleUniforms,
+	// 	vertexShader:   document.getElementById( 'particleVertexshader' ).textContent,
+	// 	fragmentShader: document.getElementById( 'particleFragmentshader' ).textContent,
+	// 	blending:       THREE.AdditiveBlending,
+	// 	depthTest:      false,
+	// 	transparent:    true,
+	// 	vertexColors:   true
+	// })
+
+	// var radius = 7
+
+	// for ( var i = 0; i < num_particles; i ++ ) {
+	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
+	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
+	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
+	// 	colors.push( 0.07, 0.2, 0.2 );
+	// 	sizes.push( Math.random() * 10 );
+	// }
+
+	// particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
+	// particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+	// particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ).setDynamic( true ) );
+
+	// particleSystem = new THREE.Points( particleGeometry, shaderMaterial );
+	// scene.add( particleSystem );
+
+	// 
+	// Another Method
+	// 
+	particles = new THREE.Geometry()
+  var pMaterial = new THREE.PointsMaterial({
+		color: 0x010203,
+		size: 5,
+		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
+		blending: THREE.AdditiveBlending,
+		transparent: true,
+		depthTest: false,
+	});
+
+	var radius = 7
+	// now create the individual particles
+	for (var p = 0; p < num_particles; p++) {
+
+		// create a particle with random
+		// position values, -250 -> 250
+		pos_chance = Math.random()*10
+		if (pos_chance < 1){
+			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
+			pY = ( Math.random() * 2 - 1 ) * radius/2.2,
+			pZ = ( Math.random() * 2 - 1 ) * radius/2.2,
+			particle = new THREE.Vector3(pX, pY, pZ)
+			particle.bound = radius/2.2
+		}else if (pos_chance < 3) {
+			var pX = ( Math.random() * 2 - 1 ) * radius/1.7,
+				pY = ( Math.random() * 2 - 1 ) * radius/1.7,
+				pZ = ( Math.random() * 2 - 1 ) * radius/1.7,
+				particle = new THREE.Vector3(pX, pY, pZ)
+				particle.bound = radius/1.7
+		}else {
+			var pX = ( Math.random() * 2 - 1 ) * radius,
+				pY = ( Math.random() * 2 - 1 ) * radius,
+				pZ = ( Math.random() * 2 - 1 ) * radius,
+				particle = new THREE.Vector3(pX, pY, pZ)
+				particle.bound = radius - 1
+		}
+
+			particle.velocity = new THREE.Vector3(
+				Math.random() * 10 - 5,              
+				Math.random() * 10 - 5, 
+				Math.random() * 10 - 5
+			);            
+
+		// add it to the geometry
+		particles.vertices.push(particle);
+	}
+
+	// create the particle system
+	particleSystem = new THREE.Points(
+		particles,
+		pMaterial
+	);
+
+	particleSystem.sortParticles = true;
+
+	// add it to the scene
+	scene.add(particleSystem);
 
 }
 
@@ -159,10 +268,59 @@ function update()
 	stats.update();
 	tesseractGlow.material.uniforms.viewVector.value = 
 		new THREE.Vector3().subVectors( camera.position, tesseractGlow.position );
+	var dt = clock.getDelta() * 0.5;
+	// engine.update( dt * 0.5 );	
+	// particleSystem.rotation.z = 0.01 * dt;
+	// var sizes = particleGeometry.attributes.size.array;
+	// var particles = particleGeometry.attributes.particle.array;
+	// for ( var i = 0; i < num_particles; i++ ) {
+	// 	sizes[ i ] = 10 * ( 1 + Math.sin( 0.1 * i + dt ) );
+	// }
+	// particleGeometry.attributes.size.needsUpdate = true;
+	// particleGeometry.attributes.position.needsUpdate = true;
+
+	// random move particle
+	var pCount = num_particles;
+  while (pCount--) {
+
+    // get the particle
+    var particle = particles.vertices[pCount];
+
+    // check if we need to reset
+    if (particle.y < -1*particle.bound) {
+      particle.velocity.y = -1 * particle.velocity.y;
+		}
+		if (particle.y > particle.bound) {
+      particle.velocity.y = -1 * particle.velocity.y;
+		}
+		if (particle.x < -1*particle.bound) {
+      particle.velocity.x = -1 * particle.velocity.x;
+		}
+		if (particle.x > particle.bound) {
+      particle.velocity.x = -1 * particle.velocity.x;
+		}
+		if (particle.z < -1*particle.bound) {
+      particle.velocity.z = -1 * particle.velocity.z;
+		}
+		if (particle.z > particle.bound) {
+      particle.velocity.z = -1 * particle.velocity.z;
+		}
+
+		// and the position
+		particle.x = particle.x + particle.velocity.x * dt
+		particle.y = particle.y + particle.velocity.y * dt
+		particle.z = particle.z + particle.velocity.z * dt
+		// console.log(partible add srelg)
+	}
+
+  // flag to the particle system
+  // that we've changed its vertices.
+	particles.verticesNeedUpdate = true
+
+
 
 }
 function render() 
 {
-	// renderer.render( scene, camera );
 	composer.render()
 }

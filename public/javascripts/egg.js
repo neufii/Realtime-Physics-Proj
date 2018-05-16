@@ -20,6 +20,8 @@ function init() {
 					.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
 					// .load( [ 'DarkSea-xpos.jpg', 'DarkSea-xneg.jpg', 'DarkSea-ypos.jpg', 'DarkSea-yneg.jpg', 'DarkSea-zpos.jpg', 'DarkSea-zneg.jpg' ] );
 
+	// scene.background = new THREE.Color( 0x000000 )
+	
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
@@ -130,7 +132,7 @@ function init() {
     	points.push( point );
 	}
 
-	eggTexture = new THREE.TextureLoader().load('../images/egg/ice.jpg' );
+	eggTexture = new THREE.TextureLoader().load('../images/egg/iceflake.jpg' );
 
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
 	var eggMaterial = new THREE.MeshPhongMaterial( { map: eggTexture, color: 0xffc560, transparent:true, opacity:0.7, refractionRatio: 0.3,envMap: scene.background, shininess: 3,combine: THREE.MixOperation, reflectivity: 0.3  } );
