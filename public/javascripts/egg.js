@@ -108,11 +108,7 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
-
-<<<<<<< HEAD
 	console.log(document.getElementById( 'glowVertexShader' ).textContent)
-=======
-
 	//LAVA
 	// var textureLoader = new THREE.TextureLoader();
 	// uniforms = {
@@ -133,7 +129,6 @@ function init() {
 	// } );
 
 
->>>>>>> 22bc41aa290c99065ebf0415cadbfc6b60a1323c
 	var points = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
 
@@ -198,8 +193,6 @@ function init() {
 	composer.addPass( effectFilm );
 
 
-<<<<<<< HEAD
-=======
 	// POST
 	// renderScene = new THREE.RenderPass( scene, camera );
 	// effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
@@ -290,7 +283,6 @@ function init() {
 	// add it to the scene
 	scene.add(particleSystem);
 
->>>>>>> 22bc41aa290c99065ebf0415cadbfc6b60a1323c
 }
 
 function onWindowResize() {
@@ -358,12 +350,8 @@ function update()
 }
 function render() 
 {
-<<<<<<< HEAD
-=======
 	renderer.clear();
 	// composer.render( 0.01 );
-
->>>>>>> 22bc41aa290c99065ebf0415cadbfc6b60a1323c
 	renderer.render( scene, camera );
 	// composer.render()
 }
