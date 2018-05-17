@@ -40,7 +40,7 @@ function init() {
 	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
-	camera.position.set(0,0,5);
+	camera.position.set(0,0,50);
 
 	// RENDERER
 	if ( Detector.webgl )
@@ -100,7 +100,7 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
 
-	var tesseractGeometry = new THREE.BoxGeometry(1,1,1,2,2,2);
+	var tesseractGeometry = new THREE.BoxGeometry(15,15,15,2,2,2);
 	var tesseractMaterial = new THREE.MeshPhongMaterial( { 
 		color: 0x00BDFF, 
 		transparent:true, 
@@ -154,34 +154,6 @@ function init() {
 	composer.addPass( bloomPass );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-
-	// SUPER SIMPLE GLOW EFFECT
-	// var spriteMap = new THREE.TextureLoader().load( '../images/tesseract/glow.png' );
-	// var spriteMaterial = new THREE.SpriteMaterial( { 
-	// 	map: spriteMap, 
-	// 	color: 0x00ccff, 
-	// 	transparent: false, 
-	// 	blending: THREE.AdditiveBlending 
-	// } );
-	// var sprite = new THREE.Sprite( spriteMaterial );
-	// sprite.scale.set(40, 40, 1)
-	// scene.add( sprite );
-
-	// 
-	// Fire
-	// 
-	var wireframeMat = new THREE.MeshBasicMaterial({
-		color : new THREE.Color(0xffffff),
-		wireframe : true
-	});
-
-	var fireTex = new THREE.TextureLoader().load("../images/resources/BlueFire.png");
-	fire = new THREE.Fire(fireTex);
-	fire.position.set(0, 0.2, 0);
-	var wireframe = new THREE.Mesh(fire.geometry, wireframeMat.clone());
-	fire.add(wireframe);
-	wireframe.visible = false;
-	scene.add(fire);
 	
 	// Particle
 	var pointLight = new THREE.PointLight(0xffffff);
@@ -280,7 +252,7 @@ function init() {
 	particleSystem.sortParticles = true;
 
 	// add it to the scene
-	// scene.add(particleSystem);
+	scene.add(particleSystem);
 
 }
 
