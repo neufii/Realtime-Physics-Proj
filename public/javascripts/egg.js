@@ -108,8 +108,7 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
-
-
+	console.log(document.getElementById( 'glowVertexShader' ).textContent)
 	//LAVA
 	// var textureLoader = new THREE.TextureLoader();
 	// uniforms = {
@@ -353,7 +352,6 @@ function render()
 {
 	renderer.clear();
 	// composer.render( 0.01 );
-
 	renderer.render( scene, camera );
 	// composer.render()
 }
