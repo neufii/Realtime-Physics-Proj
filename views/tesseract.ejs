@@ -12,6 +12,7 @@
 	<script src="/threejs/Stats.js"></script>
 	<script src="/threejs/OrbitControls.js"></script>
 
+	<script src="/threejs/modifiers/BufferSubdivisionModifier.js"></script>
 	<script src="/threejs/postprocessing/EffectComposer.js"></script>
 	<script src="/threejs/postprocessing/RenderPass.js"></script>
 	<script src="/threejs/postprocessing/MaskPass.js"></script>
@@ -22,30 +23,52 @@
 	<script src="/threejs/shaders/LuminosityHighPassShader.js"></script>
 	<script src="/threejs/postprocessing/UnrealBloomPass.js"></script>
 
-	<script id="vertexShader" type="x-shader/x-vertex">
+	<!-- Particle -->
+	<script src="/javascripts/particle_engine.js"></script>
+	
+
+	<script id="glowVertexShader" type="x-shader/x-vertex">
 	uniform vec3 viewVector;
 	uniform float c;
 	uniform float p;
 	varying float intensity;
 	void main() 
 	{
-	    vec3 vNormal = normalize( normalMatrix * normal );
+		vec3 vNormal = normalize( normalMatrix * normal );
 		vec3 vNormel = normalize( normalMatrix * viewVector );
 		intensity = pow( c - dot(vNormal, vNormel), p );
 		
-	    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 	}
 	</script>
 
-	<!-- fragment shader a.k.a. pixel shader -->
-	<script id="fragmentShader" type="x-shader/x-vertex"> 
+	<script id="glowFragmentShader" type="x-shader/x-vertex"> 
 	uniform vec3 glowColor;
 	varying float intensity;
 	void main() 
 	{
 		vec3 glow = glowColor * intensity;
-	    gl_FragColor = vec4( glow, 1.0 );
+	    gl_FragColor = vec4( glow, 0.5 );
 	}
+	</script>
+
+	<script type="x-shader/x-vertex" id="particleVertexshader">
+		attribute float size;
+		varying vec3 vColor;
+		void main() {
+			vColor = color;
+			vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+			gl_PointSize = size * ( 300.0 / -mvPosition.z );
+			gl_Position = projectionMatrix * mvPosition;
+		}
+	</script>
+	<script type="x-shader/x-fragment" id="particleFragmentshader">
+		uniform sampler2D texture;
+		varying vec3 vColor;
+		void main() {
+			gl_FragColor = vec4( vColor, 1.0 );
+			gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+		}
 	</script>
 
 	<div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
