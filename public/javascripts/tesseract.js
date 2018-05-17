@@ -2,12 +2,14 @@ var container, scene, camera, renderer, controls, stats, composer;
 var clock = new THREE.Clock();
 
 // Particle
-// var engine
 var particleSystem, particleUniforms, particleGeometry, particles;
 var num_particles = 400
 var positions = [];
 var colors = [];
 var sizes = [];
+
+// Glow
+var tesseractGlow;
 
 // Composer
 var effectFXAA, bloomPass, renderScene;
@@ -94,7 +96,7 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
 
-	var tesseractGeometry = new THREE.BoxGeometry(15,15,15);
+	var tesseractGeometry = new THREE.BoxGeometry(15,15,15,2,2,2);
 	var tesseractMaterial = new THREE.MeshPhongMaterial( { color: 0x00BDFF, transparent:true, opacity:0.5, refractionRatio: 0.95,envMap: scene.background, side: THREE.DoubleSide } );
 	tesseractMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	tesseract = new THREE.Mesh( tesseractGeometry, tesseractMaterial );
@@ -106,21 +108,24 @@ function init() {
 	{
 		uniforms: 
 		{ 
-			"c":   { type: "f", value: 0.2 },
-			"p":   { type: "f", value: 1.0 },
-			glowColor: { type: "c", value: new THREE.Color(0x9ABBED) },
+			"c":   { type: "f", value: 0.6},
+			"p":   { type: "f", value: 2.0 },
+			glowColor: { type: "c", value: new THREE.Color(0x098bff) },
 			viewVector: { type: "v3", value: camera.position }
 		},
-		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
-		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-		side: THREE.FrontSide,
+		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
+		fragmentShader: document.getElementById( 'glowFragmentShader' ).textContent,
+		side: THREE.BackSide,
 		blending: THREE.AdditiveBlending,
 		transparent: true
-	}   );
+	});
 
-	this.tesseractGlow = new THREE.Mesh( tesseractGeometry.clone() , customMaterial.clone() );
+	var modifier = new THREE.BufferSubdivisionModifier( 4 );
+	var smoothTesseractGeometry = modifier.modify( tesseractGeometry );
+
+	tesseractGlow = new THREE.Mesh( smoothTesseractGeometry , customMaterial.clone() );
   tesseractGlow.position = tesseract.position;
-	tesseractGlow.scale.multiplyScalar(1.005);
+	tesseractGlow.scale.multiplyScalar(1.5);
 	// scene.add(tesseractGlow);
 
 	// POST
@@ -139,11 +144,21 @@ function init() {
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
 
+	// SUPER SIMPLE GLOW EFFECT
+	var spriteMap = new THREE.TextureLoader().load( '../images/tesseract/glow.png' );
+	var spriteMaterial = new THREE.SpriteMaterial( { 
+		map: spriteMap, 
+		color: 0x00ccff, 
+		transparent: false, 
+		blending: THREE.AdditiveBlending 
+	} );
+	var sprite = new THREE.Sprite( spriteMaterial );
+	sprite.scale.set(40, 40, 1)
+	scene.add( sprite );
 
-	// 
+
+	
 	// Adding Light Source and Object to the center of the Cube
-	// 
-
 	var pointLight = new THREE.PointLight(0xffffff);
 	pointLight.position.set(0,0,0)
 	scene.add(pointLight)
@@ -310,7 +325,6 @@ function update()
 		particle.x = particle.x + particle.velocity.x * dt
 		particle.y = particle.y + particle.velocity.y * dt
 		particle.z = particle.z + particle.velocity.z * dt
-		// console.log(partible add srelg)
 	}
 
   // flag to the particle system
