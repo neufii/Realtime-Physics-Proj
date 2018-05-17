@@ -106,7 +106,7 @@ function init() {
 	//scene.add(pointLight)
 
 	//ADJUST SHADOW DARKNESS
-	scene.add( new THREE.AmbientLight( 0xffffff, 1 ) );
+	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
 
 
@@ -152,7 +152,7 @@ function init() {
 		shininess: 3,
 		combine: THREE.MixOperation, 
 		reflectivity: 0.3 ,
-		side: THREE.DoubleSide 
+		side: THREE.FrontSide 
 	});
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	egg = new THREE.Mesh( eggGeometry, eggMaterial );
