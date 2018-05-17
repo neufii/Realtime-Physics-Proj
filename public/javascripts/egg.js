@@ -100,27 +100,7 @@ function init() {
 	scene.add( new THREE.AmbientLight( 0xffffff, 1 ) );
 
 
-
-	//LAVA
-	var textureLoader = new THREE.TextureLoader();
-	uniforms = {
-		fogDensity: { value: 0.45 },
-		fogColor: { value: new THREE.Vector3( 0, 0, 0 ) },
-		time: { value: 1.0 },
-		uvScale: { value: new THREE.Vector2( 3.0, 1.0 ) },
-		texture1: { value: textureLoader.load( '../images/egg/cloud.png' ) },
-		texture2: { value: textureLoader.load( '../images/egg/lavatile.jpg' ) }
-				};
-	uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
-	uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
-	var size = 0.65;
-	var material = new THREE.ShaderMaterial( {
-		uniforms: uniforms,
-		vertexShader: document.getElementById( 'vertexShader' ).textContent,
-		fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-	} );
-
-
+	console.log(document.getElementById( 'glowVertexShader' ).textContent)
 	var points = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
 
@@ -174,21 +154,6 @@ function init() {
 	composer.addPass( effectFilm );
 
 
-	// POST
-	// renderScene = new THREE.RenderPass( scene, camera );
-	// effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-	// effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	// bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.12, 0.92); //1.0, 9, 0.5, 512);
-	// bloomPass.renderToScreen = true;
-	// composer = new THREE.EffectComposer( renderer );
-	// composer.setSize( window.innerWidth, window.innerHeight );
-	// composer.addPass( renderScene );
-	// composer.addPass( effectFXAA );
-	// composer.addPass( bloomPass );
-	// renderer.gammaInput = true;
-	// renderer.gammaOutput = true;
-
-
 }
 
 function onWindowResize() {
@@ -217,11 +182,6 @@ function update()
 }
 function render() 
 {
-	var delta = 5 * clock.getDelta();
-				uniforms.time.value += 0.2 * delta;
-				renderer.clear();
-				composer.render( 0.01 );
-
 	renderer.render( scene, camera );
 	// composer.render()
 }
