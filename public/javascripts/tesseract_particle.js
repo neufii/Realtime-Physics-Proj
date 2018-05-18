@@ -217,14 +217,21 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
 
+	tesseractTexture = new THREE.TextureLoader().load('../images/tesseract/space_tex.jpg' );
+
 	var tesseractGeometry = new THREE.BoxGeometry(15,15,15,2,2,2);
-	var tesseractMaterial = new THREE.MeshPhongMaterial( { 
+	var tesseractMaterial = new THREE.MeshPhongMaterial( {
+		// map: tesseractTexture, 
+		// shininess: 1,
+		// reflectivity: 0.8 ,
+		// color: 0xaaaa77,
 		color: 0x00BDFF, 
 		transparent:true, 
 		opacity:0.5, 
 		refractionRatio: 0.95,
+		combine: THREE.MixOperation, 
 		envMap: scene.background, 
-		side: THREE.DoubleSide 
+		side: THREE.DoubleSide, 
 	});
 	tesseractMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	tesseract = new THREE.Mesh( tesseractGeometry, tesseractMaterial );
