@@ -112,7 +112,7 @@ var clock = new THREE.Clock();
 var particleSystem, particleUniforms, particleGeometry, particles;
 var smallParticleSystem, smallParticleUniforms, smallParticleGeometry, smallParticles;
 var smokeParticleSystem, smokeParticleUniforms, smokeParticleGeometry, smokeParticles;
-var num_particles = 300;
+var num_particles = 500;
 var num_particles_small = 150;
 var num_smoke = 150;
 var positions = [];
@@ -269,7 +269,7 @@ function init() {
 	for (var p = 0; p < num_particles; p++) {
 
 		pos_chance = Math.random()*10
-		if (pos_chance < 4){
+		if (pos_chance < 1){
 			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
 			pY = ( Math.random() * 2 - 1 ) * radius/2.2,
 			pZ = ( Math.random() * 2 - 1 ) * radius/2.2,
@@ -280,13 +280,13 @@ function init() {
 				pY = ( Math.random() * 2 - 1 ) * radius/1.7,
 				pZ = ( Math.random() * 2 - 1 ) * radius/1.7,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius/1.7
+				particle.bound = radius/1.7 - 1
 		}else {
-			var pX = ( Math.random() * 2 - 1 ) * radius,
-				pY = ( Math.random() * 2 - 1 ) * radius,
-				pZ = ( Math.random() * 2 - 1 ) * radius,
+			var pX = ( Math.random() * 2 - 1 ) * radius/1.2,
+				pY = ( Math.random() * 2 - 1 ) * radius/1.2,
+				pZ = ( Math.random() * 2 - 1 ) * radius/1.2,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius - 1
+				particle.bound = radius/1.2 - 1
 		}
 
 		particle.velocity = new THREE.Vector3(
@@ -387,9 +387,7 @@ function init() {
 	);
 
 	smokeParticleSystem.sortParticles = true;
-
-	// add it to the scene
-	scene.add(smokeParticleSystem);
+	// scene.add(smokeParticleSystem);
 
 
 	//////////////////////////////
@@ -414,7 +412,7 @@ function init() {
 	// Outline
 	// 
 	var outlineMaterial = new THREE.MeshPhongMaterial( { 
-		color: 0x00ccff, 
+		color: 0x002233, 
 		side: THREE.BackSide 
 	});
 	// var outlineTesseract = new THREE.Mesh( new THREE.SphereGeometry(2,32,32), outlineMaterial );
@@ -426,7 +424,7 @@ function init() {
 
 	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
 	outlineTesseract.position = tesseract.position;
-	outlineTesseract.scale.multiplyScalar(1.03);
+	outlineTesseract.scale.multiplyScalar(1.02);
 	glowScene.add( outlineTesseract );
 
 	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
@@ -441,7 +439,7 @@ function init() {
 	renderGlowScene = new THREE.RenderPass( glowScene, camera );
 	effectFXAAGlow = new THREE.ShaderPass( THREE.FXAAShader );
 	effectFXAAGlow.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	bloomPassGlow = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 2.5, 0.5, 0.3);
+	bloomPassGlow = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 2.5, 1.0, 0.1);
 	bloomPassGlow.needSwap = true;
 	bloomPassGlow.renderToScreen = false;
 	// bloomPassGlow.renderToScreen = true;
