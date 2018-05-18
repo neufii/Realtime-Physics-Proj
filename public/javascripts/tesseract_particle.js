@@ -112,7 +112,7 @@ var clock = new THREE.Clock();
 var particleSystem, particleUniforms, particleGeometry, particles;
 var smallParticleSystem, smallParticleUniforms, smallParticleGeometry, smallParticles;
 var smokeParticleSystem, smokeParticleUniforms, smokeParticleGeometry, smokeParticles;
-var num_particles = 500;
+var num_particles = 400;
 var num_particles_small = 150;
 var num_smoke = 150;
 var positions = [];
@@ -282,11 +282,11 @@ function init() {
 				particle = new THREE.Vector3(pX, pY, pZ)
 				particle.bound = radius/1.7 - 1
 		}else {
-			var pX = ( Math.random() * 2 - 1 ) * radius/1.2,
-				pY = ( Math.random() * 2 - 1 ) * radius/1.2,
-				pZ = ( Math.random() * 2 - 1 ) * radius/1.2,
+			var pX = ( Math.random() * 2 - 1 ) * radius/1.4,
+				pY = ( Math.random() * 2 - 1 ) * radius/1.4,
+				pZ = ( Math.random() * 2 - 1 ) * radius/1.4,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius/1.2 - 1
+				particle.bound = radius/1.4
 		}
 
 		particle.velocity = new THREE.Vector3(
@@ -429,7 +429,7 @@ function init() {
 
 	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
 	var blackTesseractMaterial = new THREE.MeshBasicMaterial( { 
-		color: 0x000000, 
+		color: 0x001822, 
 	});
 	var blackTesseract = new THREE.Mesh( blackTesseractGeometry, blackTesseractMaterial );
 	blackTesseract.position.set(0,0,0);
@@ -439,7 +439,7 @@ function init() {
 	renderGlowScene = new THREE.RenderPass( glowScene, camera );
 	effectFXAAGlow = new THREE.ShaderPass( THREE.FXAAShader );
 	effectFXAAGlow.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	bloomPassGlow = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 2.5, 1.0, 0.1);
+	bloomPassGlow = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 4, 1.2, 0.4);
 	bloomPassGlow.needSwap = true;
 	bloomPassGlow.renderToScreen = false;
 	// bloomPassGlow.renderToScreen = true;
