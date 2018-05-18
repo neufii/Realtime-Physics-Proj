@@ -128,13 +128,14 @@ function init() {
 	// 	fragmentShader: document.getElementById( 'fragmentShader' ).textContent
 	// } );
 
-
 	var points = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
 
     	var rad = Math.PI * deg / 180;
-    	var point = new THREE.Vector2( ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10, - Math.cos( rad ) *10 ); // the "egg equation"
-    	//console.log( point ); // x-coord should be greater than zero to avoid degenerate triangles; it is not in this formula.
+    	var corx = Math.max(( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10,0);
+    	var cory = - Math.cos( rad ) *10
+    	var point = new THREE.Vector2(corx, cory); // the "egg equation"
+    	console.log( point );
     	points.push( point );
 	}
 
@@ -247,19 +248,16 @@ function init() {
 			pY = ( Math.random() * 2 - 1 ) * radius/2.2 - 4,
 			pZ = ( Math.random() * 2 - 1 ) * radius/2.2,
 			particle = new THREE.Vector3(pX, pY, pZ)
-			particle.bound = radius/2.2
 		}else if (pos_chance < 3) {
 			var pX = ( Math.random() * 2 - 1 ) * radius/1.7,
 				pY = ( Math.random() * 2 - 1 ) * radius/1.7 - 4,
 				pZ = ( Math.random() * 2 - 1 ) * radius/1.7,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius/1.7
 		}else {
 			var pX = ( Math.random() * 2 - 1 ) * radius,
 				pY = ( Math.random() * 2 - 1 ) * radius - 3,
 				pZ = ( Math.random() * 2 - 1 ) * radius,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius - 1
 		}
 
 			particle.velocity = new THREE.Vector3(
@@ -317,25 +315,32 @@ function update()
 		// get the particle
 		var particle = particles.vertices[pCount];
 
+		//TODO: edit bound for y axis
 		// check if we need to reset
-		if (particle.y < -1*particle.bound) {
-			particle.velocity.y = -1 * particle.velocity.y;
-		}
-		if (particle.y > particle.bound) {
-			particle.velocity.y = -1 * particle.velocity.y;
-		}
-		if (particle.x < -1*particle.bound) {
+		var rad = Math.acos(particle.y/-10)
+		var X_bound = (( 0.5 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10) ;
+		var Y_bound = 6;
+
+		//console.log(Y_bound)
+		if (particle.x > X_bound) {
 			particle.velocity.x = -1 * particle.velocity.x;
 		}
-		if (particle.x > particle.bound) {
+		if (particle.z < -1*X_bound) {
+			particle.velocity.z = -1 * particle.velocity.z;
+		}
+		if (particle.z > X_bound) {
+			particle.velocity.z = -1 * particle.velocity.z;
+		}
+		if (particle.y < -1*Y_bound) {
+			particle.velocity.y = -1 * particle.velocity.y;
+		}
+		if (particle.y > Y_bound) {
+			particle.velocity.y = -1 * particle.velocity.y;
+		}
+		if (particle.x < -1*X_bound) {
 			particle.velocity.x = -1 * particle.velocity.x;
 		}
-		if (particle.z < -1*particle.bound) {
-			particle.velocity.z = -1 * particle.velocity.z;
-		}
-		if (particle.z > particle.bound) {
-			particle.velocity.z = -1 * particle.velocity.z;
-		}
+		
 
 		// and the position
 		particle.x = particle.x + particle.velocity.x * dt
