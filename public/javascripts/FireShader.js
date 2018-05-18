@@ -25,10 +25,10 @@ THREE.FireShader = {
     "seed"          : { type : "f",     value : 0.0 },
     "invModelMatrix": { type : "m4",    value : null },
     "scale"         : { type : "v3",    value : null },
-    "noiseScale"    : { type : "v4",    value : new THREE.Vector4(1, 2, 1, 0.3) },
-    "magnitude"     : { type : "f",     value : 1.3 },
-    "lacunarity"    : { type : "f",     value : 2.0 },
-    "gain"          : { type : "f",     value : 0.5 }
+    "noiseScale"    : { type : "v4",    value : new THREE.Vector4(1, 1.5, 1, 0.3) },
+    "magnitude"     : { type : "f",     value : 2.0 },
+    "lacunarity"    : { type : "f",     value : 0.7 },
+    "gain"          : { type : "f",     value : 0.4 }
   },
 
   vertexShader: [

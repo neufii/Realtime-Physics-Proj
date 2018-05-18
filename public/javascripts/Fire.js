@@ -4,7 +4,7 @@
  * Ray tracing based real-time procedural volumetric fire object for three.js
  */
 
-THREE.Fire = function ( fireTex, color ) {
+THREE.Fire = function ( fireTex, color, rotation) {
 
 	var fireMaterial = new THREE.ShaderMaterial( {
     defines         : THREE.FireShader.defines,
@@ -16,18 +16,20 @@ THREE.Fire = function ( fireTex, color ) {
     depthTest       : false
 	} );
 
-    // initialize uniforms 
+  // initialize uniforms 
 
-    fireTex.magFilter = fireTex.minFilter = THREE.LinearFilter;
-    fireTex.wrapS = fireTex.wrapT = THREE.ClampToEdgeWrapping;
-    
-    fireMaterial.uniforms.fireTex.value = fireTex;
-    fireMaterial.uniforms.color.value = color || new THREE.Color( 0x00ffff );
-    fireMaterial.uniforms.invModelMatrix.value = new THREE.Matrix4();
-    fireMaterial.uniforms.scale.value = new THREE.Vector3( 1, 1, 1 );
-    fireMaterial.uniforms.seed.value = Math.random() * 19.19;
+  fireTex.magFilter = fireTex.minFilter = THREE.LinearFilter;
+  fireTex.wrapS = fireTex.wrapT = THREE.ClampToEdgeWrapping;
+  
+  fireMaterial.uniforms.fireTex.value = fireTex;
+  fireMaterial.uniforms.color.value = color || new THREE.Color( 0x00ffff );
+  fireMaterial.uniforms.invModelMatrix.value = new THREE.Matrix4();
+  fireMaterial.uniforms.scale.value = new THREE.Vector3( 1, 1, 1 );
+  fireMaterial.uniforms.seed.value = Math.random() * 19.19;
 
-	THREE.Mesh.call( this, new THREE.BoxGeometry( 1, 1, 1 ), fireMaterial );
+  THREE.Mesh.call( this, new THREE.BoxGeometry( 1,1,1 ), fireMaterial )
+  // THREE.Mesh.call( this, new THREE.SphereGeometry( 0.5, 16, 16 ), fireMaterial )
+  // this.rotation.z += rotation
 };
 
 THREE.Fire.prototype = Object.create( THREE.Mesh.prototype );
@@ -46,7 +48,7 @@ THREE.Fire.prototype.update = function ( time ) {
 
     this.material.uniforms.invModelMatrix.value = invModelMatrix;
 
-    // this.material.uniforms.scale.value = this.scale;
+    this.material.uniforms.scale.value = new THREE.Vector3( 1, 1, 0.5 );
     // console.log(this.scale)
 
 };

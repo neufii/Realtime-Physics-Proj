@@ -3,7 +3,11 @@ var clock = new THREE.Clock();
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 400
+var smallParticleSystem, smallParticleUniforms, smallParticleGeometry, smallParticles;
+var smokeParticleSystem, smokeParticleUniforms, smokeParticleGeometry, smokeParticles;
+var num_particles = 250;
+var num_particles_small = 150;
+var num_smoke = 150;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -115,13 +119,26 @@ function init() {
 	camera.lookAt(tesseract.position);
 	scene.add(tesseract);
 
+	// 
+	// Outline
+	// 
+	var outlineMaterial = new THREE.MeshPhongMaterial( { 
+		color: 0xffffff, 
+		side: THREE.BackSide 
+	});
+	// outlineMaterial.envMap.mapping = THREE.CubeRefractionMapping;
+	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
+	outlineTesseract.position = tesseract.position;
+	outlineTesseract.scale.multiplyScalar(1.05);
+	scene.add( outlineTesseract );
+
 	var customMaterial = new THREE.ShaderMaterial( 
 	{
 		uniforms: 
 		{ 
-			"c":   { type: "f", value: 0.6},
-			"p":   { type: "f", value: 2.0 },
-			glowColor: { type: "c", value: new THREE.Color(0x098bff) },
+			"c":   { type: "f", value: 100.0},
+			"p":   { type: "f", value: 9.0 },
+			glowColor: { type: "c", value: new THREE.Color(0xffffff) },
 			viewVector: { type: "v3", value: camera.position }
 		},
 		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
@@ -136,14 +153,14 @@ function init() {
 
 	tesseractGlow = new THREE.Mesh( smoothTesseractGeometry , customMaterial.clone() );
   tesseractGlow.position = tesseract.position;
-	tesseractGlow.scale.multiplyScalar(1.5);
+	tesseractGlow.scale.multiplyScalar(1.3);
 	// scene.add(tesseractGlow);
 
 	// POST
 	renderScene = new THREE.RenderPass( scene, camera );
 	effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
 	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.02, 0.5, 0.2);
+	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.2, 0.5, 0.2);
 	// renderScene.renderToScreen = true;
 	// effectFXAA.renderToScreen = true;
 	bloomPass.renderToScreen = true;
@@ -155,51 +172,14 @@ function init() {
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
 	
-	// Particle
-	var pointLight = new THREE.PointLight(0xffffff);
-	pointLight.position.set(0,0,0)
-	scene.add(pointLight)
-
-	// particleUniforms = {
-	// 	texture:   { value: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ) }
-	// };
-
-	// particleGeometry = new THREE.BufferGeometry();
-
-	// var shaderMaterial = new THREE.ShaderMaterial( {
-	// 	uniforms:       particleUniforms,
-	// 	vertexShader:   document.getElementById( 'particleVertexshader' ).textContent,
-	// 	fragmentShader: document.getElementById( 'particleFragmentshader' ).textContent,
-	// 	blending:       THREE.AdditiveBlending,
-	// 	depthTest:      false,
-	// 	transparent:    true,
-	// 	vertexColors:   true
-	// })
-
-	// var radius = 7
-
-	// for ( var i = 0; i < num_particles; i ++ ) {
-	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
-	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
-	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
-	// 	colors.push( 0.07, 0.2, 0.2 );
-	// 	sizes.push( Math.random() * 10 );
-	// }
-
-	// particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
-	// particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
-	// particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ).setDynamic( true ) );
-
-	// particleSystem = new THREE.Points( particleGeometry, shaderMaterial );
-	// scene.add( particleSystem );
-
+	
 	// 
-	// Another Method
+	// Particle Main
 	// 
 	particles = new THREE.Geometry()
   var pMaterial = new THREE.PointsMaterial({
 		color: 0x010203,
-		size: 5,
+		size: 4,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
 		blending: THREE.AdditiveBlending,
 		transparent: true,
@@ -207,11 +187,9 @@ function init() {
 	});
 
 	var radius = 7
-	// now create the individual particles
+
 	for (var p = 0; p < num_particles; p++) {
 
-		// create a particle with random
-		// position values, -250 -> 250
 		pos_chance = Math.random()*10
 		if (pos_chance < 1){
 			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
@@ -219,7 +197,7 @@ function init() {
 			pZ = ( Math.random() * 2 - 1 ) * radius/2.2,
 			particle = new THREE.Vector3(pX, pY, pZ)
 			particle.bound = radius/2.2
-		}else if (pos_chance < 3) {
+		}else if (pos_chance < 5.5) {
 			var pX = ( Math.random() * 2 - 1 ) * radius/1.7,
 				pY = ( Math.random() * 2 - 1 ) * radius/1.7,
 				pZ = ( Math.random() * 2 - 1 ) * radius/1.7,
@@ -233,26 +211,110 @@ function init() {
 				particle.bound = radius - 1
 		}
 
-			particle.velocity = new THREE.Vector3(
-				Math.random() * 10 - 5,              
-				Math.random() * 10 - 5, 
-				Math.random() * 10 - 5
-			);            
+		particle.velocity = new THREE.Vector3(
+			Math.random() * 10 - 5,              
+			Math.random() * 10 - 5, 
+			Math.random() * 10 - 5
+		);            
 
-		// add it to the geometry
 		particles.vertices.push(particle);
 	}
 
-	// create the particle system
 	particleSystem = new THREE.Points(
 		particles,
 		pMaterial
 	);
 
 	particleSystem.sortParticles = true;
+	scene.add(particleSystem);
+
+	// 
+	// Particle Small
+	// 
+	smallParticles = new THREE.Geometry()
+  var smallPMaterial = new THREE.PointsMaterial({
+		color: 0x010203,
+		size: 3,
+		map: new THREE.TextureLoader().load( "../images/particle/spark.png" ),
+		blending: THREE.AdditiveBlending,
+		transparent: true,
+		depthTest: false,
+	});
+
+	var radius = 7
+
+	for (var p = 0; p < num_particles_small; p++) {
+
+		pos_chance = Math.random()*10
+		var pX = ( Math.random() * 2 - 1 ) * radius,
+			pY = ( Math.random() * 2 - 1 ) * radius,
+			pZ = ( Math.random() * 2 - 1 ) * radius,
+			particle = new THREE.Vector3(pX, pY, pZ)
+			particle.bound = radius - 1
+
+		particle.velocity = new THREE.Vector3(
+			Math.random() * 10 - 5,              
+			Math.random() * 10 - 5, 
+			Math.random() * 10 - 5
+		);            
+
+		smallParticles.vertices.push(particle);
+	}
+
+	smallParticleSystem = new THREE.Points(
+		smallParticles,
+		smallPMaterial
+	);
+
+	smallParticleSystem.sortParticles = true;
+	// scene.add(smallParticleSystem);
+
+
+	// 
+	// Smoke Particle
+	// 
+	smokeParticles = new THREE.Geometry()
+  var smokeMaterial = new THREE.PointsMaterial({
+		color: 0x000103,
+		size: 6,
+		map: new THREE.TextureLoader().load( "../images/particle/smoke512.png" ),
+		blending: THREE.AdditiveBlending,
+		transparent: true,
+		depthTest: false,
+	});
+
+	// now create the individual particles
+	for (var p = 0; p < num_smoke; p++) {
+		// create a particle with random
+		// position values, -250 -> 250
+		var pX = ( Math.random() * 2 - 1 ) * radius,
+			pY = ( Math.random() * 2 - 1 ) * radius,
+			pZ = ( Math.random() * 2 - 1 ) * radius,
+		particle = new THREE.Vector3(pX, pY, pZ)
+		particle.bound = radius - 2
+
+		particle.velocity = new THREE.Vector3(
+			Math.random() * 10 - 5,              
+			Math.random() * 10 - 5, 
+			Math.random() * 10 - 5
+		);            
+
+		// add it to the geometry
+		smokeParticles.vertices.push(particle);
+		// smokeParticles.vertices.push(particle);
+		// p += 1
+	}
+
+	// create the particle system
+	smokeParticleSystem = new THREE.Points(
+		smokeParticles,
+		smokeMaterial
+	);
+
+	smokeParticleSystem.sortParticles = true;
 
 	// add it to the scene
-	scene.add(particleSystem);
+	scene.add(smokeParticleSystem);
 
 }
 
@@ -278,25 +340,16 @@ function update()
 
 	controls.update();
 	stats.update();
-	tesseractGlow.material.uniforms.viewVector.value = 
-		new THREE.Vector3().subVectors( camera.position, tesseractGlow.position );
+	tesseractGlow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, tesseractGlow.position );
+	
 	var dt = clock.getDelta() * 0.5;
-	// engine.update( dt * 0.5 );	
-	// particleSystem.rotation.z = 0.01 * dt;
-	// var sizes = particleGeometry.attributes.size.array;
-	// var particles = particleGeometry.attributes.particle.array;
-	// for ( var i = 0; i < num_particles; i++ ) {
-	// 	sizes[ i ] = 10 * ( 1 + Math.sin( 0.1 * i + dt ) );
-	// }
-	// particleGeometry.attributes.size.needsUpdate = true;
-	// particleGeometry.attributes.position.needsUpdate = true;
 
 	// random move particle
 	var pCount = num_particles;
   while (pCount--) {
 
-    var particle = particles.vertices[pCount];
-
+		// Particle Movement
+		var particle = particles.vertices[pCount];
     if (particle.y < -1*particle.bound) {
       particle.velocity.y = -1 * particle.velocity.y;
 		}
@@ -321,11 +374,60 @@ function update()
 	}
 	particles.verticesNeedUpdate = true
 
-	// fire update
-	var t = clock.elapsedTime;
-  fire.update(t);
+	var smallCount = num_particles_small
+	while (smallCount--){
+		var smallParticle = smallParticles.vertices[smallCount];
+		if (smallParticle.y < -1*smallParticle.bound) {
+			smallParticle.velocity.y = -1 * smallParticle.velocity.y;
+		}
+		if (smallParticle.y > smallParticle.bound) {
+			smallParticle.velocity.y = -1 * smallParticle.velocity.y;
+		}
+		if (smallParticle.x < -1*smallParticle.bound) {
+			smallParticle.velocity.x = -1 * smallParticle.velocity.x;
+		}
+		if (smallParticle.x > smallParticle.bound) {
+			smallParticle.velocity.x = -1 * smallParticle.velocity.x;
+		}
+		if (smallParticle.z < -1*smallParticle.bound) {
+			smallParticle.velocity.z = -1 * smallParticle.velocity.z;
+		}
+		if (smallParticle.z > smallParticle.bound) {
+			smallParticle.velocity.z = -1 * smallParticle.velocity.z;
+		}
+		smallParticle.x = smallParticle.x + smallParticle.velocity.x * dt * 0.2
+		smallParticle.y = smallParticle.y + smallParticle.velocity.y * dt * 0.2
+		smallParticle.z = smallParticle.z + smallParticle.velocity.z * dt * 0.2
+	}
+	smallParticles.verticesNeedUpdate = true
 
-
+	var smokeCount = num_smoke
+	while (smokeCount--){
+		var smokeParticle = smokeParticles.vertices[smokeCount];
+		if (smokeParticle.y < -1*smokeParticle.bound) {
+			smokeParticle.velocity.y = -1 * smokeParticle.velocity.y;
+		}
+		if (smokeParticle.y > smokeParticle.bound) {
+			smokeParticle.velocity.y = -1 * smokeParticle.velocity.y;
+		}
+		if (smokeParticle.x < -1*smokeParticle.bound) {
+			smokeParticle.velocity.x = -1 * smokeParticle.velocity.x;
+		}
+		if (smokeParticle.x > smokeParticle.bound) {
+			smokeParticle.velocity.x = -1 * smokeParticle.velocity.x;
+		}
+		if (smokeParticle.z < -1*smokeParticle.bound) {
+			smokeParticle.velocity.z = -1 * smokeParticle.velocity.z;
+		}
+		if (smokeParticle.z > smokeParticle.bound) {
+			smokeParticle.velocity.z = -1 * smokeParticle.velocity.z;
+		}
+		smokeParticle.x = smokeParticle.x + smokeParticle.velocity.x * dt * 0.3
+		smokeParticle.y = smokeParticle.y + smokeParticle.velocity.y * dt * 0.3
+		smokeParticle.z = smokeParticle.z + smokeParticle.velocity.z * dt * 0.3
+	}
+	smokeParticles.verticesNeedUpdate = true
+	
 }
 function render() 
 {

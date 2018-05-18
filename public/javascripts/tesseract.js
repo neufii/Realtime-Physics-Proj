@@ -13,7 +13,7 @@ var tesseractGlow;
 
 // Fire
 var mesh;
-var fire;
+var fire, fire_rotate;
 
 // Composer
 var effectFXAA, bloomPass, renderScene;
@@ -176,12 +176,21 @@ function init() {
 	});
 
 	var fireTex = new THREE.TextureLoader().load("../images/resources/BlueFire.png");
-	fire = new THREE.Fire(fireTex);
-	fire.position.set(0, 0.2, 0);
+	fire = new THREE.Fire(fireTex, new THREE.Color( 0x00ffff ), 0);
+	fire.position.set(0, 0.3, 0);
 	var wireframe = new THREE.Mesh(fire.geometry, wireframeMat.clone());
 	fire.add(wireframe);
+	wireframe.visible = true;
 	wireframe.visible = false;
 	scene.add(fire);
+
+	// fire_rotate = new THREE.Fire(fireTex, new THREE.Color( 0x00ffff ), 3.1415);
+	// fire_rotate.position.set(0, -0.4, 0);
+	// var wireframe2 = new THREE.Mesh(fire_rotate.geometry, wireframeMat.clone());
+	// fire_rotate.add(wireframe2)
+	// wireframe2.visible = true;
+	// wireframe2.visible = false;
+	// scene.add(fire_rotate);
 	
 	// Particle
 	var pointLight = new THREE.PointLight(0xffffff);
@@ -310,7 +319,6 @@ function update()
 		new THREE.Vector3().subVectors( camera.position, tesseractGlow.position );
 	var dt = clock.getDelta() * 0.5;
 	// engine.update( dt * 0.5 );	
-	// particleSystem.rotation.z = 0.01 * dt;
 	// var sizes = particleGeometry.attributes.size.array;
 	// var particles = particleGeometry.attributes.particle.array;
 	// for ( var i = 0; i < num_particles; i++ ) {
@@ -351,7 +359,8 @@ function update()
 
 	// fire update
 	var t = clock.elapsedTime;
-  fire.update(t);
+	fire.update(t);
+	fire_rotate.update(t);
 
 
 }
