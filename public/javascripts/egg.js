@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 400
+var num_particles = 20
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -227,7 +227,7 @@ function init() {
 	// Particle
 	// 
 	particles = new THREE.Geometry()
-  var pMaterial = new THREE.PointsMaterial({
+  	var pMaterial = new THREE.PointsMaterial({
 		color: 0x333333,
 		size: 5,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
@@ -242,6 +242,7 @@ function init() {
 
 		// create a particle with random
 		// position values, -250 -> 250
+		//TODO: recreate generate point
 		pos_chance = Math.random()*10
 		if (pos_chance < 1){
 			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
