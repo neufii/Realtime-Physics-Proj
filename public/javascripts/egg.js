@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 100
+var num_particles = 20
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -115,17 +115,36 @@ function init() {
 	var textureLoader = new THREE.TextureLoader();
 	var noiseTexture = textureLoader.load( '../images/egg/cloud.png' );
 	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
+	var noiseScale = 0.5;
 		
 	var lavaTexture = textureLoader.load( '../images/egg/lavatile.jpg' );
-	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping; 
+	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
+	var baseSpeed = 0.02;
+	var repeatS = repeatT = 2; 
+
+	var blendTexture = lavaTexture;
+	blendTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
+	var blendSpeed = 0.01;
+	var blendOffset = 0.15;
+
+	var bumpTexture = noiseTexture;
+	bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+	var bumpSpeed   = 0.15;
+	var bumpScale = 0.5;
 	
 	// use "this." to create global object
 	this.customUniforms = {
 		baseTexture: 	{ type: "t", value: lavaTexture },
-		baseSpeed: 		{ type: "f", value: 0.1 },
-		noiseTexture: 	{ type: "t", value: noiseTexture },
-		noiseScale:		{ type: "f", value: 0.2 },
-		alpha: 			{ type: "f", value: 0.8 },
+		baseSpeed:		{ type: "f", value: baseSpeed },
+		repeatS:		{ type: "f", value: repeatS },
+		repeatT:		{ type: "f", value: repeatT },
+		noiseTexture:	{ type: "t", value: noiseTexture },
+		noiseScale:		{ type: "f", value: noiseScale },
+		blendTexture:	{ type: "t", value: blendTexture },
+		blendSpeed: 	{ type: "f", value: blendSpeed },
+		blendOffset: 	{ type: "f", value: blendOffset },
+		bumpTexture:	{ type: "t", value: bumpTexture },
+		alpha: 			{ type: "f", value: 0.5 },
 		time: 			{ type: "f", value: 1.0 }
 	};
 	
@@ -174,12 +193,12 @@ function init() {
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	egg = new THREE.Mesh( eggGeometry, eggMaterial );
 	egg.position.set(0,0,0);
-	egg.castShadow = true; 
+	//egg.castShadow = true; 
 	camera.lookAt(egg.position);
 
 	scene.add(smallEgg)
 
-	scene.add(egg);
+	//scene.add(egg);
 
 
 	var customMaterial = new THREE.ShaderMaterial( 
@@ -212,20 +231,8 @@ function init() {
 	composer.addPass( effectBloom );
 	composer.addPass( effectFilm );
 
-
-	// POST
-	// renderScene = new THREE.RenderPass( scene, camera );
-	// effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-	// effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	// bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.12, 0.92); //1.0, 9, 0.5, 512);
-	// bloomPass.renderToScreen = true;
-	// composer = new THREE.EffectComposer( renderer );
-	// composer.setSize( window.innerWidth, window.innerHeight );
-	// composer.addPass( renderScene );
-	// composer.addPass( effectFXAA );
-	// composer.addPass( bloomPass );
-	// renderer.gammaInput = true;
-	// renderer.gammaOutput = true;
+	renderer.gammaInput = true;
+	renderer.gammaOutput = true;
 
 	// 
 	// Simple Glow
@@ -258,32 +265,15 @@ function init() {
 	var radius = 4
 	// now create the individual particles
 	for (var p = 0; p < num_particles; p++) {
+		pX = ( Math.random() * 2 - 1 ) * radius,
+		pY = ( Math.random() * 2 - 1 ) * radius - 3,
+		pZ = ( Math.random() * 2 - 1 ) * radius,
+		particle = new THREE.Vector3(pX, pY, pZ)
 
-		// create a particle with random
-		// position values, -250 -> 250
-		//TODO: recreate generate point
-		pos_chance = Math.random()*10
-		if (pos_chance < 1){
-			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
-			pY = ( Math.random() * 2 - 1 ) * radius/2.2 - 4,
-			pZ = ( Math.random() * 2 - 1 ) * radius/2.2,
-			particle = new THREE.Vector3(pX, pY, pZ)
-		}else if (pos_chance < 3) {
-			var pX = ( Math.random() * 2 - 1 ) * radius/1.7,
-				pY = ( Math.random() * 2 - 1 ) * radius/1.7 - 4,
-				pZ = ( Math.random() * 2 - 1 ) * radius/1.7,
-				particle = new THREE.Vector3(pX, pY, pZ)
-		}else {
-			var pX = ( Math.random() * 2 - 1 ) * radius,
-				pY = ( Math.random() * 2 - 1 ) * radius - 3,
-				pZ = ( Math.random() * 2 - 1 ) * radius,
-				particle = new THREE.Vector3(pX, pY, pZ)
-		}
-
-			particle.velocity = new THREE.Vector3(
-				Math.random() * 10 - 5,              
-				Math.random() * 10 - 5, 
-				Math.random() * 10 - 5
+		particle.velocity = new THREE.Vector3(
+			Math.random() * 5,              
+			Math.random() * 5, 
+			Math.random() * 5
 			);            
 
 		// add it to the geometry
@@ -338,8 +328,8 @@ function update()
 		//TODO: edit bound for y axis
 		// check if we need to reset
 		var rad = Math.acos(particle.y/-10)
-		var X_bound = (( 0.4 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10);
-		var Y_bound = 6;
+		var X_bound = (( 0.5 + .06 * Math.cos( rad ) ) * Math.sin( rad ) * 10) ;
+		var Y_bound = 7.5;
 
 		//console.log(Y_bound)
 		if (particle.x > X_bound) {
@@ -371,9 +361,7 @@ function update()
 	// flag to the particle system
 	// that we've changed its vertices.
 	particles.verticesNeedUpdate = true
-
-	var delta = clock.getDelta() * 1000;
-	customUniforms.time.value += delta
+	customUniforms.time.value += dt * 3
 
 }
 function render() 
