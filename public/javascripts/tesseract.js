@@ -21,10 +21,18 @@ var composer;
 
 var sphere;
 
+// GLow
+var glowScene, glowComposer;
+var glowRenderer;
+var effectFXAAGlow, bloomPassGlow, renderGlowScene;
+
 init();
 animate();
 
 function init() {
+
+	var renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBufer: false };
+
 
 	// SCENE
 	scene = new THREE.Scene();
@@ -40,7 +48,7 @@ function init() {
 	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
-	camera.position.set(0,0,5);
+	camera.position.set(0,0,50);
 
 	// RENDERER
 	if ( Detector.webgl )
@@ -100,7 +108,7 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
 
-	var tesseractGeometry = new THREE.BoxGeometry(1,1,1,2,2,2);
+	var tesseractGeometry = new THREE.BoxGeometry(15,15,15,2,2,2);
 	var tesseractMaterial = new THREE.MeshPhongMaterial( { 
 		color: 0x00BDFF, 
 		transparent:true, 
@@ -182,7 +190,7 @@ function init() {
 	fire.add(wireframe);
 	wireframe.visible = true;
 	wireframe.visible = false;
-	scene.add(fire);
+	// scene.add(fire);
 
 	// fire_rotate = new THREE.Fire(fireTex, new THREE.Color( 0x00ffff ), 3.1415);
 	// fire_rotate.position.set(0, -0.4, 0);
@@ -289,7 +297,69 @@ function init() {
 	particleSystem.sortParticles = true;
 
 	// add it to the scene
-	// scene.add(particleSystem);
+	scene.add(particleSystem); 
+
+	//////////////////////////////
+	// 													//
+	// 			GLOWING SECTION			//
+	// 													//
+	//////////////////////////////
+
+	glowScene = new THREE.Scene();
+
+	glowScene.background = new THREE.Color( 0x000000 )
+	// 
+	// Setup to be the same as normal Scene
+	// 
+	glowScene.add( camera )
+	glowScene.add( spotlight );
+	glowScene.add( spotlight2 );
+	glowScene.add( spotlight3 );
+	glowScene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
+	
+	// 
+	// Outline
+	// 
+	var outlineMaterial = new THREE.MeshPhongMaterial( { 
+		color: 0x002233, 
+		side: THREE.BackSide 
+	});
+	// var outlineTesseract = new THREE.Mesh( new THREE.SphereGeometry(2,32,32), outlineMaterial );
+	// var outlineMaterial = new THREE.ShaderMaterial({
+	// 	uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
+	// 	vertexShader: outline_shader.vertex_shader,
+	// 	fragmentShader: outline_shader.fragment_shader
+	// });
+
+	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
+	outlineTesseract.position = tesseract.position;
+	outlineTesseract.scale.multiplyScalar(1.02);
+	glowScene.add( outlineTesseract );
+
+	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
+	var blackTesseractMaterial = new THREE.MeshBasicMaterial( { 
+		color: 0x001822, 
+	});
+	var blackTesseract = new THREE.Mesh( blackTesseractGeometry, blackTesseractMaterial );
+	blackTesseract.position.set(0,0,0);
+	glowScene.add( blackTesseract )
+
+	// // POST FOR GLOWING BACKGROUND
+	renderGlowScene = new THREE.RenderPass( glowScene, camera );
+	effectFXAAGlow = new THREE.ShaderPass( THREE.FXAAShader );
+	effectFXAAGlow.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+	bloomPassGlow = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 4, 1.2, 0.4);
+	bloomPassGlow.needSwap = true;
+	bloomPassGlow.renderToScreen = false;
+	bloomPassGlow.renderToScreen = true;
+
+	renderTargetGlow = new THREE.WebGLRenderTarget( SCREEN_WIDTH, SCREEN_HEIGHT, renderTargetParameters );
+	glowComposer = new THREE.EffectComposer( renderer, renderTargetGlow );
+	glowComposer.setSize( window.innerWidth, window.innerHeight );
+	glowComposer.addPass( renderGlowScene );
+	glowComposer.addPass( effectFXAAGlow );
+	glowComposer.addPass( bloomPassGlow );
+	glowComposer.addPass( new THREE.ShaderPass( THREE.CopyShader ) )
 
 }
 
@@ -302,6 +372,10 @@ function onWindowResize() {
 	// Composer
 	composer.setSize( window.innerWidth, window.innerHeight );
 	effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight );
+
+	// Glow
+	glowComposer.setSize( window.innerWidth, window.innerHeight );
+	effectFXAAGlow.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight );
 }
 
 function animate() 
@@ -359,12 +433,13 @@ function update()
 
 	// fire update
 	var t = clock.elapsedTime;
-	fire.update(t);
-	fire_rotate.update(t);
+	// fire.update(t);
+	// fire_rotate.update(t);
 
 
 }
 function render() 
 {
-	composer.render()
+	// renderer.render(glowScene, camera)
+	glowComposer.render()
 }
