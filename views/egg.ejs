@@ -97,22 +97,16 @@
 	</script>
 
 	<script id="vertexShader" type="x-shader/x-vertex">
-		uniform sampler2D noiseTexture;
 		uniform float noiseScale;
 		uniform sampler2D bumpTexture;
-		uniform float time;
 		varying vec2 vUv;
 		void main() 
 		{ 
 		    vUv = uv;
-			
-			vec2 uvTimeShift = vUv + vec2( 1.0, 1.9 ) * time;
-			vec4 noiseGeneratorTimeShift = texture2D( noiseTexture, uvTimeShift );
-			vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noiseGeneratorTimeShift.r, noiseGeneratorTimeShift.g );
+			vec2 uvNoiseTimeShift = vUv + noiseScale;
 			vec4 bumpData = texture2D( bumpTexture, uvNoiseTimeShift );
-		    vec3 newPosition = position + normal;
 			
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 		}
 	</script>
 

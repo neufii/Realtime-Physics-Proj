@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 200
+var num_particles = 10
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -117,7 +117,7 @@ function init() {
 	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
 	var noiseScale = 0.5;
 		
-	var lavaTexture = textureLoader.load( '../images/egg/lavatile.jpg' );
+	var lavaTexture = textureLoader.load( '../images/egg/lavatile7.jpg' );
 	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
 	var baseSpeed = 0.02;
 	var repeatS = repeatT = 2; 
@@ -160,22 +160,16 @@ function init() {
 	customMaterial.transparent = true;
 
 	var points = [];
-	var points2 = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
     	var rad = Math.PI * deg / 180;
     	var corx = Math.max((( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10),0);
     	var cory = - Math.cos( rad ) *10
     	var point = new THREE.Vector2(corx, cory);
-    	var point2 = new THREE.Vector2(corx*0.999, cory*0.999);
     	//console.log( point );
     	points.push( point );
-    	points2.push(point2)
 	}
 
 	eggTexture = new THREE.TextureLoader().load('../images/egg/iceflake.jpg' );
-
-	var smallEggGeometry = new THREE.LatheBufferGeometry(points2,32);
-	smallEgg =  new THREE.Mesh( smallEggGeometry, customMaterial );
 
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
@@ -191,14 +185,14 @@ function init() {
 		side: THREE.FrontSide 
 	});
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
-	egg = new THREE.Mesh( eggGeometry, eggMaterial );
+	egg = new THREE.Mesh( eggGeometry, customMaterial );
 	egg.position.set(0,0,0);
-	//egg.castShadow = true; 
+	egg.castShadow = true; 
 	camera.lookAt(egg.position);
 
-	scene.add(smallEgg)
+	//scene.add(smallEgg)
 
-	//scene.add(egg);
+	scene.add(egg);
 
 
 	var customMaterial = new THREE.ShaderMaterial( 
@@ -255,7 +249,7 @@ function init() {
 	particles = new THREE.Geometry()
   	var pMaterial = new THREE.PointsMaterial({
 		color: 0x333333,
-		size: 5,
+		size: 10,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
 		blending: THREE.AdditiveBlending,
 		transparent: true,
@@ -328,8 +322,8 @@ function update()
 		//TODO: edit bound for y axis
 		// check if we need to reset
 		var rad = Math.acos(particle.y/-10)
-		var X_bound = ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 8;
-		var Y_bound = 8;
+		var X_bound = ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 7;
+		var Y_bound = 7;
 
 		if(particle.y > 9){
 			console.log(particle.y)
