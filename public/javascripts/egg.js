@@ -119,12 +119,12 @@ function init() {
 		
 	var lavaTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm.jpg' );
 	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
-	var baseSpeed = 0.02;
+	var baseSpeed = 0.01;
 	var repeatS = repeatT = 2; 
 
 	var blendTexture = lavaTexture;
 	blendTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
-	var blendSpeed = 0.01;
+	var blendSpeed = 0.0;
 	var blendOffset = 0.15;
 
 	var bumpTexture = noiseTexture;
