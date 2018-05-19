@@ -117,7 +117,7 @@ function init() {
 	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
 	var noiseScale = 0.5;
 		
-	var lavaTexture = textureLoader.load( '../images/egg/lavatile7.jpg' );
+	var lavaTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm.jpg' );
 	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
 	var baseSpeed = 0.02;
 	var repeatS = repeatT = 2; 
@@ -158,6 +158,7 @@ function init() {
 	}   );
 
 	customMaterial.transparent = true;
+	customMaterial.depthWrite = false;
 
 	var points = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
@@ -173,10 +174,10 @@ function init() {
 
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
-		map : eggTexture,
-		color: 0xffc560, 
+		//map : eggTexture,
+		color: 0xff7900, 
 		transparent:true, 
-		opacity:0.2, 
+		opacity:0.5, 
 		refractionRatio: 0.3,
 		envMap: scene.background, 
 		shininess: 3,
@@ -184,15 +185,19 @@ function init() {
 		reflectivity: 0.3 ,
 		side: THREE.FrontSide 
 	});
+	eggMaterial.depthWrite = false
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	egg = new THREE.Mesh( eggGeometry, customMaterial );
 	egg.position.set(0,0,0);
 	egg.castShadow = true; 
 	camera.lookAt(egg.position);
 
-	//scene.add(smallEgg)
+	smallEgg = egg.clone()
+	smallEgg.scale.set(1.001,1.001,1.001)
+	smallEgg.material = eggMaterial
+	scene.add(egg)
 
-	scene.add(egg);
+	scene.add(smallEgg);
 
 
 	var customMaterial = new THREE.ShaderMaterial( 
