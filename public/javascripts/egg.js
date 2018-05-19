@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 400
+var num_particles = 100
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -132,7 +132,7 @@ function init() {
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
 
     	var rad = Math.PI * deg / 180;
-    	var corx = Math.max(( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10,0);
+    	var corx = Math.max((( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10),0);
     	var cory = - Math.cos( rad ) *10
     	var point = new THREE.Vector2(corx, cory); // the "egg equation"
     	console.log( point );
@@ -182,7 +182,7 @@ function init() {
 	this.eggGlow = new THREE.Mesh( eggGeometry.clone(), customMaterial.clone() );
     eggGlow.position = egg.position;
 	eggGlow.scale.multiplyScalar(1.0005);
-	scene.add( eggGlow);
+	scene.add(eggGlow);
 
 	var renderModel = new THREE.RenderPass( scene, camera );
 	var effectBloom = new THREE.BloomPass( 1.25 );
@@ -227,7 +227,7 @@ function init() {
 	// Particle
 	// 
 	particles = new THREE.Geometry()
-  var pMaterial = new THREE.PointsMaterial({
+  	var pMaterial = new THREE.PointsMaterial({
 		color: 0x333333,
 		size: 5,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
@@ -242,6 +242,7 @@ function init() {
 
 		// create a particle with random
 		// position values, -250 -> 250
+		//TODO: recreate generate point
 		pos_chance = Math.random()*10
 		if (pos_chance < 1){
 			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
@@ -318,7 +319,7 @@ function update()
 		//TODO: edit bound for y axis
 		// check if we need to reset
 		var rad = Math.acos(particle.y/-10)
-		var X_bound = (( 0.5 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10) ;
+		var X_bound = (( 0.4 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10);
 		var Y_bound = 6;
 
 		//console.log(Y_bound)
@@ -331,14 +332,14 @@ function update()
 		if (particle.z > X_bound) {
 			particle.velocity.z = -1 * particle.velocity.z;
 		}
+		if (particle.x < -1*X_bound) {
+			particle.velocity.x = -1 * particle.velocity.x;
+		}
 		if (particle.y < -1*Y_bound) {
 			particle.velocity.y = -1 * particle.velocity.y;
 		}
 		if (particle.y > Y_bound) {
 			particle.velocity.y = -1 * particle.velocity.y;
-		}
-		if (particle.x < -1*X_bound) {
-			particle.velocity.x = -1 * particle.velocity.x;
 		}
 		
 
