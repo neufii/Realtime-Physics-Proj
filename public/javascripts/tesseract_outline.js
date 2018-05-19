@@ -1,91 +1,3 @@
-THREE.AdditiveBlendShader = {
-
-	uniforms: {
-
-		'tDiffuse': { type: 't', value: null },
-		'tAdd': { type: 't', value: null },
-		'amount': { type: 'f', value: 1.0 }
-
-	},
-
-	vertexShader: [
-
-		'varying vec2 vUv;',
-
-		'void main() {',
-
-			'vUv = uv;',
-			'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-
-		'}'
-
-	].join('\n'),
-
-	fragmentShader: [
-
-
-		'uniform sampler2D tDiffuse;',
-		'uniform sampler2D tAdd;',
-		'uniform float amount;',
-
-		'varying vec2 vUv;',
-
-		'void main() {',
-
-			'vec4 texelBase = texture2D( tDiffuse, vUv );',
-			'vec4 texelAdd = texture2D( tAdd, vUv );',
-			'gl_FragColor = texelBase + texelAdd * amount;',
-
-		'}'
-
-	].join('\n')
-
-};
-
-var finalShader = {
-
-	uniforms: {
-
-		'tDiffuse': { type: 't', value: null },
-		'tAdd': { type: 't', value: null },
-		'amount': { type: 'f', value: 1.0 }
-
-	},
-
-	vertexShader: [
-
-		'varying vec2 vUv;',
-
-		'void main() {',
-
-			'vUv = uv;',
-			'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-
-		'}'
-
-	].join('\n'),
-
-	fragmentShader: [
-
-
-		'uniform sampler2D tDiffuse;',
-		'uniform sampler2D tAdd;',
-		'uniform float amount;',
-
-		'varying vec2 vUv;',
-
-		'void main() {',
-
-			'vec4 texelBase = texture2D( tDiffuse, vUv );',
-			'vec4 texelAdd = texture2D( tAdd, vUv );',
-			'gl_FragColor = texelBase + texelAdd * amount;',
-
-		'}'
-
-	].join('\n')
-
-};
-
 var outline_shader = {
 	uniforms: {
 			"linewidth":  { type: "f", value: 0.06 },
@@ -110,38 +22,36 @@ var clock = new THREE.Clock();
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var smallParticleSystem, smallParticleUniforms, smallParticleGeometry, smallParticles;
-var smokeParticleSystem, smokeParticleUniforms, smokeParticleGeometry, smokeParticles;
-var num_particles = 400;
-var num_particles_small = 150;
-var num_smoke = 150;
+var num_particles = 400
 var positions = [];
 var colors = [];
 var sizes = [];
 
 // Glow
 var tesseractGlow;
-var glowScene, glowComposer;
-var glowRenderer;
 
-var finalComposer;
-var alphaComposer;
-
-
-var renderTarget, renderTargetGlow, renderTargetAlpha, renderTargetFinal;
+// Fire
+var mesh;
+var fire, fire_rotate;
 
 // Composer
 var effectFXAA, bloomPass, renderScene;
+var composer;
+
+var sphere;
+
+// GLow
+var glowScene, glowComposer;
+var glowRenderer;
 var effectFXAAGlow, bloomPassGlow, renderGlowScene;
-var blendPass, finalShader, finalPass;
 
 init();
 animate();
 
 function init() {
 
-	// Render Target Params
 	var renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBufer: false };
+
 
 	// SCENE
 	scene = new THREE.Scene();
@@ -217,21 +127,14 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 10 ) );
 
-	tesseractTexture = new THREE.TextureLoader().load('../images/tesseract/space_tex.jpg' );
-
 	var tesseractGeometry = new THREE.BoxGeometry(15,15,15,2,2,2);
-	var tesseractMaterial = new THREE.MeshPhongMaterial( {
-		// map: tesseractTexture, 
-		// shininess: 1,
-		// reflectivity: 0.8 ,
-		// color: 0xaaaa77,
+	var tesseractMaterial = new THREE.MeshPhongMaterial( { 
 		color: 0x00BDFF, 
 		transparent:true, 
 		opacity:0.5, 
 		refractionRatio: 0.95,
-		combine: THREE.MixOperation, 
 		envMap: scene.background, 
-		side: THREE.DoubleSide, 
+		side: THREE.DoubleSide 
 	});
 	tesseractMaterial.envMap.mapping = THREE.CubeRefractionMapping;
 	tesseract = new THREE.Mesh( tesseractGeometry, tesseractMaterial );
@@ -239,32 +142,116 @@ function init() {
 	camera.lookAt(tesseract.position);
 	scene.add(tesseract);
 
+	var customMaterial = new THREE.ShaderMaterial( 
+	{
+		uniforms: 
+		{ 
+			"c":   { type: "f", value: 0.6},
+			"p":   { type: "f", value: 2.0 },
+			glowColor: { type: "c", value: new THREE.Color(0x098bff) },
+			viewVector: { type: "v3", value: camera.position }
+		},
+		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
+		fragmentShader: document.getElementById( 'glowFragmentShader' ).textContent,
+		side: THREE.BackSide,
+		blending: THREE.AdditiveBlending,
+		transparent: true
+	});
+
+	var modifier = new THREE.BufferSubdivisionModifier( 4 );
+	var smoothTesseractGeometry = modifier.modify( tesseractGeometry );
+
+	tesseractGlow = new THREE.Mesh( smoothTesseractGeometry , customMaterial.clone() );
+  tesseractGlow.position = tesseract.position;
+	tesseractGlow.scale.multiplyScalar(1.0);
+	// scene.add(tesseractGlow);
+
 	// POST
 	renderScene = new THREE.RenderPass( scene, camera );
 	effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
 	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.2, 0.5, 0.2);
-	bloomPass.needSwap = true;
+	bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.02, 0.5, 0.2);
+	// renderScene.renderToScreen = true;
+	// effectFXAA.renderToScreen = true;
 	bloomPass.renderToScreen = true;
-	renderTarget = new THREE.WebGLRenderTarget( SCREEN_WIDTH, SCREEN_HEIGHT, renderTargetParameters );
-	composer = new THREE.EffectComposer( renderer, renderTarget );
+	composer = new THREE.EffectComposer( renderer );
 	composer.setSize( window.innerWidth, window.innerHeight );
 	composer.addPass( renderScene );
 	composer.addPass( effectFXAA );
 	composer.addPass( bloomPass );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
+
+	// 
+	// Fire
+	// 
+	var wireframeMat = new THREE.MeshBasicMaterial({
+		color : new THREE.Color(0xffffff),
+		wireframe : true
+	});
+
+	var fireTex = new THREE.TextureLoader().load("../images/resources/BlueFire.png");
+	fire = new THREE.Fire(fireTex, new THREE.Color( 0x00ffff ), 0);
+	fire.position.set(0, 0.3, 0);
+	var wireframe = new THREE.Mesh(fire.geometry, wireframeMat.clone());
+	fire.add(wireframe);
+	wireframe.visible = true;
+	wireframe.visible = false;
+	// scene.add(fire);
+
+	// fire_rotate = new THREE.Fire(fireTex, new THREE.Color( 0x00ffff ), 3.1415);
+	// fire_rotate.position.set(0, -0.4, 0);
+	// var wireframe2 = new THREE.Mesh(fire_rotate.geometry, wireframeMat.clone());
+	// fire_rotate.add(wireframe2)
+	// wireframe2.visible = true;
+	// wireframe2.visible = false;
+	// scene.add(fire_rotate);
 	
-	
-	//////////////////////////////
-	// 													//
-	// 			Particle Section		//
-	// 													//
-	//////////////////////////////
+	// Particle
+	var pointLight = new THREE.PointLight(0xffffff);
+	pointLight.position.set(0,0,0)
+	scene.add(pointLight)
+
+	// particleUniforms = {
+	// 	texture:   { value: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ) }
+	// };
+
+	// particleGeometry = new THREE.BufferGeometry();
+
+	// var shaderMaterial = new THREE.ShaderMaterial( {
+	// 	uniforms:       particleUniforms,
+	// 	vertexShader:   document.getElementById( 'particleVertexshader' ).textContent,
+	// 	fragmentShader: document.getElementById( 'particleFragmentshader' ).textContent,
+	// 	blending:       THREE.AdditiveBlending,
+	// 	depthTest:      false,
+	// 	transparent:    true,
+	// 	vertexColors:   true
+	// })
+
+	// var radius = 7
+
+	// for ( var i = 0; i < num_particles; i ++ ) {
+	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
+	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
+	// 	positions.push( ( Math.random() * 2 - 1 ) * radius );
+	// 	colors.push( 0.07, 0.2, 0.2 );
+	// 	sizes.push( Math.random() * 10 );
+	// }
+
+	// particleGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
+	// particleGeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+	// particleGeometry.addAttribute( 'size', new THREE.Float32BufferAttribute( sizes, 1 ).setDynamic( true ) );
+
+	// particleSystem = new THREE.Points( particleGeometry, shaderMaterial );
+	// scene.add( particleSystem );
+
+	// 
+	// Another Method
+	// 
 	particles = new THREE.Geometry()
   var pMaterial = new THREE.PointsMaterial({
 		color: 0x010203,
-		size: 4,
+		size: 5,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
 		blending: THREE.AdditiveBlending,
 		transparent: true,
@@ -272,9 +259,11 @@ function init() {
 	});
 
 	var radius = 7
-
+	// now create the individual particles
 	for (var p = 0; p < num_particles; p++) {
 
+		// create a particle with random
+		// position values, -250 -> 250
 		pos_chance = Math.random()*10
 		if (pos_chance < 1){
 			var pX = ( Math.random() * 2 - 1 ) * radius/2.2,
@@ -282,120 +271,40 @@ function init() {
 			pZ = ( Math.random() * 2 - 1 ) * radius/2.2,
 			particle = new THREE.Vector3(pX, pY, pZ)
 			particle.bound = radius/2.2
-		}else if (pos_chance < 4) {
+		}else if (pos_chance < 3) {
 			var pX = ( Math.random() * 2 - 1 ) * radius/1.7,
 				pY = ( Math.random() * 2 - 1 ) * radius/1.7,
 				pZ = ( Math.random() * 2 - 1 ) * radius/1.7,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius/1.7 - 1
+				particle.bound = radius/1.7
 		}else {
-			var pX = ( Math.random() * 2 - 1 ) * radius/1.4,
-				pY = ( Math.random() * 2 - 1 ) * radius/1.4,
-				pZ = ( Math.random() * 2 - 1 ) * radius/1.4,
+			var pX = ( Math.random() * 2 - 1 ) * radius,
+				pY = ( Math.random() * 2 - 1 ) * radius,
+				pZ = ( Math.random() * 2 - 1 ) * radius,
 				particle = new THREE.Vector3(pX, pY, pZ)
-				particle.bound = radius/1.4
+				particle.bound = radius - 1
 		}
 
-		particle.velocity = new THREE.Vector3(
-			Math.random() * 10 - 5,              
-			Math.random() * 10 - 5, 
-			Math.random() * 10 - 5
-		);            
+			particle.velocity = new THREE.Vector3(
+				Math.random() * 10 - 5,              
+				Math.random() * 10 - 5, 
+				Math.random() * 10 - 5
+			);            
 
+		// add it to the geometry
 		particles.vertices.push(particle);
 	}
 
+	// create the particle system
 	particleSystem = new THREE.Points(
 		particles,
 		pMaterial
 	);
 
 	particleSystem.sortParticles = true;
-	scene.add(particleSystem);
 
-	// 
-	// Particle Small
-	// 
-	smallParticles = new THREE.Geometry()
-  var smallPMaterial = new THREE.PointsMaterial({
-		color: 0x010203,
-		size: 3,
-		map: new THREE.TextureLoader().load( "../images/particle/spark.png" ),
-		blending: THREE.AdditiveBlending,
-		transparent: true,
-		depthTest: false,
-	});
-
-	var radius = 7
-
-	for (var p = 0; p < num_particles_small; p++) {
-
-		pos_chance = Math.random()*10
-		var pX = ( Math.random() * 2 - 1 ) * radius,
-			pY = ( Math.random() * 2 - 1 ) * radius,
-			pZ = ( Math.random() * 2 - 1 ) * radius,
-			particle = new THREE.Vector3(pX, pY, pZ)
-			particle.bound = radius - 1
-
-		particle.velocity = new THREE.Vector3(
-			Math.random() * 10 - 5,              
-			Math.random() * 10 - 5, 
-			Math.random() * 10 - 5
-		);            
-
-		smallParticles.vertices.push(particle);
-	}
-
-	smallParticleSystem = new THREE.Points(
-		smallParticles,
-		smallPMaterial
-	);
-
-	smallParticleSystem.sortParticles = true;
-	// scene.add(smallParticleSystem);
-
-
-	// 
-	// Smoke Particle
-	// 
-	smokeParticles = new THREE.Geometry()
-  var smokeMaterial = new THREE.PointsMaterial({
-		color: 0x000000,
-		size: 3,
-		map: new THREE.TextureLoader().load( "../images/particle/smoke512.png" ),
-		blending: THREE.MultiplicativeBlending,
-		transparent: true,
-		depthTest: false,
-	});
-
-	// now create the individual particles
-	for (var p = 0; p < num_smoke; p++) {
-		// create a particle with random
-		// position values, -250 -> 250
-		var pX = ( Math.random() * 2 - 1 ) * radius,
-			pY = ( Math.random() * 2 - 1 ) * radius,
-			pZ = ( Math.random() * 2 - 1 ) * radius,
-		particle = new THREE.Vector3(pX, pY, pZ)
-		particle.bound = radius - 2
-
-		particle.velocity = new THREE.Vector3(
-			Math.random() * 10 - 5,              
-			Math.random() * 10 - 5, 
-			Math.random() * 10 - 5
-		);            
-
-		smokeParticles.vertices.push(particle);
-	}
-
-	// create the particle system
-	smokeParticleSystem = new THREE.Points(
-		smokeParticles,
-		smokeMaterial
-	);
-
-	smokeParticleSystem.sortParticles = true;
-	// scene.add(smokeParticleSystem);
-
+	// add it to the scene
+	scene.add(particleSystem); 
 
 	//////////////////////////////
 	// 													//
@@ -423,6 +332,40 @@ function init() {
 		side: THREE.BackSide 
 	});
 
+	// var h = 7.5
+	// var outlineGeometry = new THREE.BufferGeometry();
+	// 			var position = [];
+	// 			position.push(
+	// 				-h, -h, -h,
+	// 				-h, h, -h,
+	// 				-h, h, -h,
+	// 				h, h, -h,
+	// 				h, h, -h,
+	// 				h, -h, -h,
+	// 				h, -h, -h,
+	// 				-h, -h, -h,
+	// 				-h, -h, h,
+	// 				-h, h, h,
+	// 				-h, h, h,
+	// 				h, h, h,
+	// 				h, h, h,
+	// 				h, -h, h,
+	// 				h, -h, h,
+	// 				-h, -h, h,
+	// 				-h, -h, -h,
+	// 				-h, -h, h,
+	// 				-h, h, -h,
+	// 				-h, h, h,
+	// 				h, h, -h,
+	// 				h, h, h,
+	// 				h, -h, -h,
+	// 				h, -h, h
+	// 			 );
+	// outlineGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( position, 3 ) );
+	// var lineSegments = new THREE.LineSegments( outlineGeometry, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 10 } ) );
+	// lineSegments.computeLineDistances();
+	// glowScene.add( lineSegments );
+
 	var borderMaterial = new THREE.ShaderMaterial({
 		uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
 		vertexShader: outline_shader.vertex_shader,
@@ -433,7 +376,6 @@ function init() {
 	borderTesseract.position = tesseract.position;
 	glowScene.add( borderTesseract );
 
-
 	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
 	outlineTesseract.position = tesseract.position;
 	outlineTesseract.scale.multiplyScalar(1.02);
@@ -441,6 +383,7 @@ function init() {
 
 	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
 	var blackTesseractMaterial = new THREE.MeshBasicMaterial( { 
+		// color: 0x001822, 
 		color: 0x22ccff
 	});
 	var blackTesseract = new THREE.Mesh( blackTesseractGeometry, blackTesseractMaterial );
@@ -454,7 +397,7 @@ function init() {
 	bloomPassGlow = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 4, 1.2, 0.4);
 	bloomPassGlow.needSwap = true;
 	bloomPassGlow.renderToScreen = false;
-	// bloomPassGlow.renderToScreen = true;
+	bloomPassGlow.renderToScreen = true;
 
 	renderTargetGlow = new THREE.WebGLRenderTarget( SCREEN_WIDTH, SCREEN_HEIGHT, renderTargetParameters );
 	glowComposer = new THREE.EffectComposer( renderer, renderTargetGlow );
@@ -463,23 +406,6 @@ function init() {
 	glowComposer.addPass( effectFXAAGlow );
 	glowComposer.addPass( bloomPassGlow );
 	glowComposer.addPass( new THREE.ShaderPass( THREE.CopyShader ) )
-
-	// 
-	// BLENDING IT ALL
-	// 
-
-	finalShader.uniforms[ 'tAdd' ].value = glowComposer.renderTarget2;
-	finalShader.uniforms[ 'amount' ].value = 1
-	finalPass = new THREE.ShaderPass( finalShader );
-	finalPass.needsSwap = true;
-	finalPass.renderToScreen = true;
-	renderTarget = new THREE.WebGLRenderTarget( SCREEN_WIDTH, SCREEN_HEIGHT, renderTargetParameters );
-	finalComposer = new THREE.EffectComposer( renderer, renderTarget );
-	finalComposer.addPass( renderScene );
-	finalComposer.addPass( effectFXAA );
-	finalComposer.addPass( bloomPass );
-	finalComposer.addPass( finalPass );
-
 
 }
 
@@ -493,15 +419,9 @@ function onWindowResize() {
 	composer.setSize( window.innerWidth, window.innerHeight );
 	effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight );
 
-	// Glow Composer
+	// Glow
 	glowComposer.setSize( window.innerWidth, window.innerHeight );
 	effectFXAAGlow.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight );
-
-	// Final Composer
-	finalComposer.setSize( window.innerWidth, window.innerHeight );
-	
-	// Alpha Composer
-	// alphaComposer.setSize( window.innerWidth, window.innerHeight );
 }
 
 function animate() 
@@ -514,15 +434,25 @@ function update()
 {
 
 	controls.update();
-	stats.update();	
+	stats.update();
+	tesseractGlow.material.uniforms.viewVector.value = 
+		new THREE.Vector3().subVectors( camera.position, tesseractGlow.position );
 	var dt = clock.getDelta() * 0.5;
+	// engine.update( dt * 0.5 );	
+	// var sizes = particleGeometry.attributes.size.array;
+	// var particles = particleGeometry.attributes.particle.array;
+	// for ( var i = 0; i < num_particles; i++ ) {
+	// 	sizes[ i ] = 10 * ( 1 + Math.sin( 0.1 * i + dt ) );
+	// }
+	// particleGeometry.attributes.size.needsUpdate = true;
+	// particleGeometry.attributes.position.needsUpdate = true;
 
 	// random move particle
 	var pCount = num_particles;
   while (pCount--) {
 
-		// Particle Movement
-		var particle = particles.vertices[pCount];
+    var particle = particles.vertices[pCount];
+
     if (particle.y < -1*particle.bound) {
       particle.velocity.y = -1 * particle.velocity.y;
 		}
@@ -547,69 +477,15 @@ function update()
 	}
 	particles.verticesNeedUpdate = true
 
-	var smallCount = num_particles_small
-	while (smallCount--){
-		var smallParticle = smallParticles.vertices[smallCount];
-		if (smallParticle.y < -1*smallParticle.bound) {
-			smallParticle.velocity.y = -1 * smallParticle.velocity.y;
-		}
-		if (smallParticle.y > smallParticle.bound) {
-			smallParticle.velocity.y = -1 * smallParticle.velocity.y;
-		}
-		if (smallParticle.x < -1*smallParticle.bound) {
-			smallParticle.velocity.x = -1 * smallParticle.velocity.x;
-		}
-		if (smallParticle.x > smallParticle.bound) {
-			smallParticle.velocity.x = -1 * smallParticle.velocity.x;
-		}
-		if (smallParticle.z < -1*smallParticle.bound) {
-			smallParticle.velocity.z = -1 * smallParticle.velocity.z;
-		}
-		if (smallParticle.z > smallParticle.bound) {
-			smallParticle.velocity.z = -1 * smallParticle.velocity.z;
-		}
-		smallParticle.x = smallParticle.x + smallParticle.velocity.x * dt * 0.2
-		smallParticle.y = smallParticle.y + smallParticle.velocity.y * dt * 0.2
-		smallParticle.z = smallParticle.z + smallParticle.velocity.z * dt * 0.2
-	}
-	smallParticles.verticesNeedUpdate = true
+	// fire update
+	var t = clock.elapsedTime;
+	// fire.update(t);
+	// fire_rotate.update(t);
 
-	var smokeCount = num_smoke
-	while (smokeCount--){
-		var smokeParticle = smokeParticles.vertices[smokeCount];
-		if (smokeParticle.y < -1*smokeParticle.bound) {
-			smokeParticle.velocity.y = -1 * smokeParticle.velocity.y;
-		}
-		if (smokeParticle.y > smokeParticle.bound) {
-			smokeParticle.velocity.y = -1 * smokeParticle.velocity.y;
-		}
-		if (smokeParticle.x < -1*smokeParticle.bound) {
-			smokeParticle.velocity.x = -1 * smokeParticle.velocity.x;
-		}
-		if (smokeParticle.x > smokeParticle.bound) {
-			smokeParticle.velocity.x = -1 * smokeParticle.velocity.x;
-		}
-		if (smokeParticle.z < -1*smokeParticle.bound) {
-			smokeParticle.velocity.z = -1 * smokeParticle.velocity.z;
-		}
-		if (smokeParticle.z > smokeParticle.bound) {
-			smokeParticle.velocity.z = -1 * smokeParticle.velocity.z;
-		}
-		smokeParticle.x = smokeParticle.x + smokeParticle.velocity.x * dt * 0.3
-		smokeParticle.y = smokeParticle.y + smokeParticle.velocity.y * dt * 0.3
-		smokeParticle.z = smokeParticle.z + smokeParticle.velocity.z * dt * 0.3
-	}
-	smokeParticles.verticesNeedUpdate = true
-	
+
 }
 function render() 
 {
-	// renderer.clear()
-	// renderer.clearDepth()
-	// renderer.clear()
-	// composer.render()
-	// renderer.render(glowScene, camera)
-	glowComposer.render( 0.1 )
-	finalComposer.render( 0.1 )
-
+	renderer.render(glowScene, camera)
+	// glowComposer.render()
 }
