@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 20
+var num_particles = 200
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -328,26 +328,32 @@ function update()
 		//TODO: edit bound for y axis
 		// check if we need to reset
 		var rad = Math.acos(particle.y/-10)
-		var X_bound = (( 0.5 + .06 * Math.cos( rad ) ) * Math.sin( rad ) * 10) ;
-		var Y_bound = 7.5;
+		var X_bound = ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 8;
+		var Y_bound = 8;
+
+		if(particle.y > 9){
+			console.log(particle.y)
+			console.log(rad)
+			console.log(X_bound)
+		} 
 
 		//console.log(Y_bound)
-		if (particle.x > X_bound) {
+		if (particle.x + particle.velocity.x * dt> X_bound) {
 			particle.velocity.x = -1 * particle.velocity.x;
 		}
-		if (particle.z < -1*X_bound) {
+		if (particle.z + particle.velocity.z * dt < -1*X_bound) {
 			particle.velocity.z = -1 * particle.velocity.z;
 		}
-		if (particle.z > X_bound) {
+		if (particle.z + particle.velocity.z * dt> X_bound) {
 			particle.velocity.z = -1 * particle.velocity.z;
 		}
-		if (particle.x < -1*X_bound) {
+		if (particle.x + particle.velocity.x * dt< -1*X_bound) {
 			particle.velocity.x = -1 * particle.velocity.x;
 		}
-		if (particle.y < -1*Y_bound) {
+		if (particle.y + particle.velocity.y * dt < -1*Y_bound) {
 			particle.velocity.y = -1 * particle.velocity.y;
 		}
-		if (particle.y > Y_bound) {
+		if (particle.y + particle.velocity.y * dt> Y_bound) {
 			particle.velocity.y = -1 * particle.velocity.y;
 		}
 		
