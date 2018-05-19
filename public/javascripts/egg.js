@@ -113,56 +113,57 @@ function init() {
 	//console.log(document.getElementById( 'glowVertexShader' ).textContent)
 	//LAVA
 	var textureLoader = new THREE.TextureLoader();
-
+	var noiseTexture = textureLoader.load( '../images/egg/cloud.png' );
+	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
+		
+	var lavaTexture = textureLoader.load( '../images/egg/lavatile.jpg' );
+	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping; 
+	
+	// use "this." to create global object
 	this.customUniforms = {
-		baseTexture: 	{ type: "t", value: textureLoader.load( '../images/egg/lavatile.jpg' ) },
-		baseSpeed:		{ type: "f", value: 0.02 },
-		repeatS:		{ type: "f", value: 4.0 },
-		repeatT:		{ type: "f", value: 4.0 },
-		noiseTexture:	{ type: "t", value: textureLoader.load( '../images/egg/cloud.png' ) },
-		noiseScale:		{ type: "f", value: 0.5 },
-		blendTexture:	{ type: "t", value: textureLoader.load( '../images/egg/lavatile.jpg' ) },
-		blendSpeed: 	{ type: "f", value: 0.01 },
-		blendOffset: 	{ type: "f", value: 0.25 },
-		bumpTexture:	{ type: "t", value: textureLoader.load( '../images/egg/cloud.png' ) },
-		bumpSpeed: 		{ type: "f", value: 0.15 },
-		bumpScale: 		{ type: "f", value: 0.0 },
-		alpha: 			{ type: "f", value: 1.0 },
-		time: 			{ type: "f", value: 2.0 }
+		baseTexture: 	{ type: "t", value: lavaTexture },
+		baseSpeed: 		{ type: "f", value: 0.1 },
+		noiseTexture: 	{ type: "t", value: noiseTexture },
+		noiseScale:		{ type: "f", value: 0.2 },
+		alpha: 			{ type: "f", value: 0.8 },
+		time: 			{ type: "f", value: 1.0 }
 	};
+	
+	// create custom material from the shader code above
+	//   that is within specially labeled script tags
+	var customMaterial = new THREE.ShaderMaterial( 
+	{
+	    uniforms: customUniforms,
+		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+	}   );
 
-	customUniforms.baseTexture.value.wrapS = customUniforms.baseTexture.value.wrapT = THREE.RepeatWrapping;
-	customUniforms.noiseTexture.value.wrapS = customUniforms.noiseTexture.value.wrapT = THREE.RepeatWrapping
-	customUniforms.blendTexture.value.wrapS = customUniforms.blendTexture.value.wrapT = THREE.RepeatWrapping;
-	customUniforms.bumpTexture.value.wrapS = customUniforms.bumpTexture.value.wrapT = THREE.RepeatWrapping;
-	var size = 0.65;
-	var material = new THREE.ShaderMaterial( {
-		uniforms: customUniforms,
-		vertexShader: document.getElementById( 'vertexShader' ).textContent,
-		fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-	} );
-
-	material.transparent = true;
-	material.opacity = 0.0;
+	customMaterial.transparent = true;
 
 	var points = [];
+	var points2 = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
     	var rad = Math.PI * deg / 180;
     	var corx = Math.max((( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10),0);
     	var cory = - Math.cos( rad ) *10
     	var point = new THREE.Vector2(corx, cory);
+    	var point2 = new THREE.Vector2(corx*0.999, cory*0.999);
     	//console.log( point );
     	points.push( point );
+    	points2.push(point2)
 	}
 
 	eggTexture = new THREE.TextureLoader().load('../images/egg/iceflake.jpg' );
 
+	var smallEggGeometry = new THREE.LatheBufferGeometry(points2,32);
+	smallEgg =  new THREE.Mesh( smallEggGeometry, customMaterial );
+
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
-		map: eggTexture, 
+		map : eggTexture,
 		color: 0xffc560, 
 		transparent:true, 
-		opacity:0.7, 
+		opacity:0.2, 
 		refractionRatio: 0.3,
 		envMap: scene.background, 
 		shininess: 3,
@@ -171,10 +172,12 @@ function init() {
 		side: THREE.FrontSide 
 	});
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
-	egg = new THREE.Mesh( eggGeometry, material );
+	egg = new THREE.Mesh( eggGeometry, eggMaterial );
 	egg.position.set(0,0,0);
 	egg.castShadow = true; 
 	camera.lookAt(egg.position);
+
+	scene.add(smallEgg)
 
 	scene.add(egg);
 
