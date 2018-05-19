@@ -88,7 +88,7 @@ var finalShader = {
 
 var outline_shader = {
 	uniforms: {
-			"linewidth":  { type: "f", value: 0.5 },
+			"linewidth":  { type: "f", value: 0.06 },
 	},
 	vertex_shader: [
 			"uniform float linewidth;",
@@ -100,7 +100,7 @@ var outline_shader = {
 	].join("\n"),
 	fragment_shader: [
 			"void main() {",
-					"gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 );",
+					"gl_FragColor = vec4( 0.0, 0.3, 0.35, 1.0 );",
 			"}"
 	].join("\n")
 };
@@ -360,10 +360,10 @@ function init() {
 	// 
 	smokeParticles = new THREE.Geometry()
   var smokeMaterial = new THREE.PointsMaterial({
-		color: 0x000103,
-		size: 6,
+		color: 0x000000,
+		size: 4,
 		map: new THREE.TextureLoader().load( "../images/particle/smoke512.png" ),
-		blending: THREE.AdditiveBlending,
+		blending: THREE.MultiplicativeBlending,
 		transparent: true,
 		depthTest: false,
 	});
@@ -422,12 +422,17 @@ function init() {
 		color: 0x002233, 
 		side: THREE.BackSide 
 	});
-	// var outlineTesseract = new THREE.Mesh( new THREE.SphereGeometry(2,32,32), outlineMaterial );
-	// var outlineMaterial = new THREE.ShaderMaterial({
-	// 	uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
-	// 	vertexShader: outline_shader.vertex_shader,
-	// 	fragmentShader: outline_shader.fragment_shader
-	// });
+
+	var borderMaterial = new THREE.ShaderMaterial({
+		uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
+		vertexShader: outline_shader.vertex_shader,
+		fragmentShader: outline_shader.fragment_shader
+	});
+
+	var borderTesseract = new THREE.Mesh( tesseractGeometry, borderMaterial );
+	borderTesseract.position = tesseract.position;
+	glowScene.add( borderTesseract );
+
 
 	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
 	outlineTesseract.position = tesseract.position;
@@ -436,7 +441,7 @@ function init() {
 
 	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
 	var blackTesseractMaterial = new THREE.MeshBasicMaterial( { 
-		color: 0x001822, 
+		color: 0x22ccff
 	});
 	var blackTesseract = new THREE.Mesh( blackTesseractGeometry, blackTesseractMaterial );
 	blackTesseract.position.set(0,0,0);

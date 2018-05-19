@@ -1,3 +1,22 @@
+var outline_shader = {
+	uniforms: {
+			"linewidth":  { type: "f", value: 0.06 },
+	},
+	vertex_shader: [
+			"uniform float linewidth;",
+			"void main() {",
+					"vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",
+					"vec4 displacement = vec4( normalize( normalMatrix * normal ) * linewidth, 0.0 ) + mvPosition;",
+					"gl_Position = projectionMatrix * displacement;",
+			"}"
+	].join("\n"),
+	fragment_shader: [
+			"void main() {",
+					"gl_FragColor = vec4( 0.0, 0.3, 0.35, 1.0 );",
+			"}"
+	].join("\n")
+};
+
 var container, scene, camera, renderer, controls, stats, composer;
 var clock = new THREE.Clock();
 
@@ -144,7 +163,7 @@ function init() {
 
 	tesseractGlow = new THREE.Mesh( smoothTesseractGeometry , customMaterial.clone() );
   tesseractGlow.position = tesseract.position;
-	tesseractGlow.scale.multiplyScalar(1.5);
+	tesseractGlow.scale.multiplyScalar(1.0);
 	// scene.add(tesseractGlow);
 
 	// POST
@@ -162,18 +181,6 @@ function init() {
 	composer.addPass( bloomPass );
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
-
-	// SUPER SIMPLE GLOW EFFECT
-	// var spriteMap = new THREE.TextureLoader().load( '../images/tesseract/glow.png' );
-	// var spriteMaterial = new THREE.SpriteMaterial( { 
-	// 	map: spriteMap, 
-	// 	color: 0x00ccff, 
-	// 	transparent: false, 
-	// 	blending: THREE.AdditiveBlending 
-	// } );
-	// var sprite = new THREE.Sprite( spriteMaterial );
-	// sprite.scale.set(40, 40, 1)
-	// scene.add( sprite );
 
 	// 
 	// Fire
@@ -324,12 +331,50 @@ function init() {
 		color: 0x002233, 
 		side: THREE.BackSide 
 	});
-	// var outlineTesseract = new THREE.Mesh( new THREE.SphereGeometry(2,32,32), outlineMaterial );
-	// var outlineMaterial = new THREE.ShaderMaterial({
-	// 	uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
-	// 	vertexShader: outline_shader.vertex_shader,
-	// 	fragmentShader: outline_shader.fragment_shader
-	// });
+
+	// var h = 7.5
+	// var outlineGeometry = new THREE.BufferGeometry();
+	// 			var position = [];
+	// 			position.push(
+	// 				-h, -h, -h,
+	// 				-h, h, -h,
+	// 				-h, h, -h,
+	// 				h, h, -h,
+	// 				h, h, -h,
+	// 				h, -h, -h,
+	// 				h, -h, -h,
+	// 				-h, -h, -h,
+	// 				-h, -h, h,
+	// 				-h, h, h,
+	// 				-h, h, h,
+	// 				h, h, h,
+	// 				h, h, h,
+	// 				h, -h, h,
+	// 				h, -h, h,
+	// 				-h, -h, h,
+	// 				-h, -h, -h,
+	// 				-h, -h, h,
+	// 				-h, h, -h,
+	// 				-h, h, h,
+	// 				h, h, -h,
+	// 				h, h, h,
+	// 				h, -h, -h,
+	// 				h, -h, h
+	// 			 );
+	// outlineGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( position, 3 ) );
+	// var lineSegments = new THREE.LineSegments( outlineGeometry, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 10 } ) );
+	// lineSegments.computeLineDistances();
+	// glowScene.add( lineSegments );
+
+	var borderMaterial = new THREE.ShaderMaterial({
+		uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
+		vertexShader: outline_shader.vertex_shader,
+		fragmentShader: outline_shader.fragment_shader
+	});
+
+	var borderTesseract = new THREE.Mesh( tesseractGeometry, borderMaterial );
+	borderTesseract.position = tesseract.position;
+	glowScene.add( borderTesseract );
 
 	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
 	outlineTesseract.position = tesseract.position;
@@ -338,7 +383,8 @@ function init() {
 
 	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
 	var blackTesseractMaterial = new THREE.MeshBasicMaterial( { 
-		color: 0x001822, 
+		// color: 0x001822, 
+		color: 0x22ccff
 	});
 	var blackTesseract = new THREE.Mesh( blackTesseractGeometry, blackTesseractMaterial );
 	blackTesseract.position.set(0,0,0);
@@ -440,6 +486,6 @@ function update()
 }
 function render() 
 {
-	// renderer.render(glowScene, camera)
-	glowComposer.render()
+	renderer.render(glowScene, camera)
+	// glowComposer.render()
 }
