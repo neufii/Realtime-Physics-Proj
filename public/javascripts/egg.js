@@ -14,6 +14,8 @@ var sphere;
 var effectFXAA, bloomPass, renderScene;
 var composer;
 
+var uniforms;
+
 init();
 animate();
 
@@ -108,34 +110,48 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
-	console.log(document.getElementById( 'glowVertexShader' ).textContent)
+	//console.log(document.getElementById( 'glowVertexShader' ).textContent)
 	//LAVA
-	// var textureLoader = new THREE.TextureLoader();
-	// uniforms = {
-	// 	fogDensity: { value: 0.45 },
-	// 	fogColor: { value: new THREE.Vector3( 0, 0, 0 ) },
-	// 	time: { value: 1.0 },
-	// 	uvScale: { value: new THREE.Vector2( 3.0, 1.0 ) },
-	// 	texture1: { value: textureLoader.load( '../images/egg/cloud.png' ) },
-	// 	texture2: { value: textureLoader.load( '../images/egg/lavatile.jpg' ) }
-	// 			};
-	// uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
-	// uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
-	// var size = 0.65;
-	// var material = new THREE.ShaderMaterial( {
-	// 	uniforms: uniforms,
-	// 	vertexShader: document.getElementById( 'vertexShader' ).textContent,
-	// 	fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-	// } );
+	var textureLoader = new THREE.TextureLoader();
+
+	this.customUniforms = {
+		baseTexture: 	{ type: "t", value: textureLoader.load( '../images/egg/lavatile.jpg' ) },
+		baseSpeed:		{ type: "f", value: 0.02 },
+		repeatS:		{ type: "f", value: 4.0 },
+		repeatT:		{ type: "f", value: 4.0 },
+		noiseTexture:	{ type: "t", value: textureLoader.load( '../images/egg/cloud.png' ) },
+		noiseScale:		{ type: "f", value: 0.5 },
+		blendTexture:	{ type: "t", value: textureLoader.load( '../images/egg/lavatile.jpg' ) },
+		blendSpeed: 	{ type: "f", value: 0.01 },
+		blendOffset: 	{ type: "f", value: 0.25 },
+		bumpTexture:	{ type: "t", value: textureLoader.load( '../images/egg/cloud.png' ) },
+		bumpSpeed: 		{ type: "f", value: 0.15 },
+		bumpScale: 		{ type: "f", value: 0.0 },
+		alpha: 			{ type: "f", value: 1.0 },
+		time: 			{ type: "f", value: 2.0 }
+	};
+
+	customUniforms.baseTexture.value.wrapS = customUniforms.baseTexture.value.wrapT = THREE.RepeatWrapping;
+	customUniforms.noiseTexture.value.wrapS = customUniforms.noiseTexture.value.wrapT = THREE.RepeatWrapping
+	customUniforms.blendTexture.value.wrapS = customUniforms.blendTexture.value.wrapT = THREE.RepeatWrapping;
+	customUniforms.bumpTexture.value.wrapS = customUniforms.bumpTexture.value.wrapT = THREE.RepeatWrapping;
+	var size = 0.65;
+	var material = new THREE.ShaderMaterial( {
+		uniforms: customUniforms,
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+	} );
+
+	material.transparent = true;
+	material.opacity = 0.0;
 
 	var points = [];
 	for ( var deg = 0; deg <= 180; deg += 6 ) {
-
     	var rad = Math.PI * deg / 180;
     	var corx = Math.max((( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10),0);
     	var cory = - Math.cos( rad ) *10
-    	var point = new THREE.Vector2(corx, cory); // the "egg equation"
-    	console.log( point );
+    	var point = new THREE.Vector2(corx, cory);
+    	//console.log( point );
     	points.push( point );
 	}
 
@@ -155,7 +171,7 @@ function init() {
 		side: THREE.FrontSide 
 	});
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
-	egg = new THREE.Mesh( eggGeometry, eggMaterial );
+	egg = new THREE.Mesh( eggGeometry, material );
 	egg.position.set(0,0,0);
 	egg.castShadow = true; 
 	camera.lookAt(egg.position);
@@ -352,6 +368,9 @@ function update()
 	// flag to the particle system
 	// that we've changed its vertices.
 	particles.verticesNeedUpdate = true
+
+	var delta = clock.getDelta() * 1000;
+	customUniforms.time.value += delta
 
 }
 function render() 
