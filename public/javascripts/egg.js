@@ -1,10 +1,11 @@
 var container, scene, camera, renderer, controls, stats, composer;
 var clock = new THREE.Clock();
+var keyboard = new THREEx.KeyboardState();
 var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 50;
+var num_particles = 10;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -27,10 +28,6 @@ function init() {
 	scene.background = new THREE.CubeTextureLoader()
 					.setPath( '../images/egg/' )
 					.load( [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ] );
-					// .load( [ 'DarkSea-xpos.jpg', 'DarkSea-xneg.jpg', 'DarkSea-ypos.jpg', 'DarkSea-yneg.jpg', 'DarkSea-zpos.jpg', 'DarkSea-zneg.jpg' ] );
-
-	// scene.background = new THREE.Color( 0x000000 )
-	
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
 	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
@@ -63,51 +60,12 @@ function init() {
 	container.appendChild( stats.domElement );
 
 	// LIGHT
-
-	// spotlight #1 -- yellow, dark shadow
 	var spotlight = new THREE.SpotLight(0xffffff);
-	spotlight.position.set(-60,150,-30);
-	spotlight.angle = Math.PI/4;
-	spotlight.intensity = 1;
-	spotlight.shadow.mapSize.width = 1024; // default is 512
-	spotlight.shadow.mapSize.height = 1024; // default is 512
+	spotlight.position.set(40,40,0);
 
-	// must enable shadow casting ability for the light
+	spotlight.shadow.mapSize.width = 1024;
 	spotlight.castShadow = true;
 	//scene.add(spotlight);
-	// spotlight #2 -- red, light shadow
-	var spotlight2 = new THREE.SpotLight(0xffffff);
-	spotlight2.position.set(60,150,-60);
-	spotlight2.angle = Math.PI/4;
-	spotlight2.shadow.mapSize.width = 1024; // default is 512
-	spotlight2.shadow.mapSize.height = 1024; // default is 512
-	spotlight2.intensity = 0.5;
-	spotlight2.castShadow = true;
-	//scene.add(spotlight2);
-
-	
-	// spotlight #3
-	var spotlight3 = new THREE.SpotLight(0xffffff);
-	spotlight3.position.set(150,80,-100);
-	spotlight3.intensity = 4;
-	spotlight3.castShadow = true;
-	spotlight3.shadow.mapSize.width = 1024; // default is 512
-	spotlight3.shadow.mapSize.height = 1024; // default is 512
-
-	scene.add(spotlight3);
-
-	// change the direction this spotlight is facing
-	var lightTarget = new THREE.Object3D();
-	lightTarget.position.set(150,10,-100);
-	scene.add(lightTarget);
-	spotlight3.target = lightTarget;
-	renderer.shadowMap.enabled = true;
-
-	var pointLight = new THREE.PointLight(0xffffff);
-	pointLight.position.set(0,0,0)
-	//scene.add(pointLight)
-
-	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
 	//LAVA
@@ -205,11 +163,10 @@ function init() {
 	{
 	    uniforms: 
 		{ 
-			"c":   { type: "f", value: 0.0 },
-			"p":   { type: "f", value: 10 },
+			"p":   { type: "f", value: 8 },
 			glowColor: { type: "c", value: new THREE.Color(0xffffff) },
 			viewVector: { type: "v3", value: camera.position },
-			lightVector: {type: "v3", value: spotlight3.position}
+			lightVector: {type: "v3", value: spotlight.position}
 		},
 		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
 		fragmentShader: document.getElementById( 'glowFragmentShader' ).textContent,
@@ -220,20 +177,8 @@ function init() {
 
 	this.eggGlow = new THREE.Mesh( eggGeometry.clone(), customMaterial.clone() );
     eggGlow.position = egg.position;
-	eggGlow.scale.multiplyScalar(1.0005);
+	eggGlow.scale.multiplyScalar(1.001);
 	scene.add(eggGlow);
-
-	var renderModel = new THREE.RenderPass( scene, camera );
-	var effectBloom = new THREE.BloomPass( 1.25 );
-	var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
-	effectFilm.renderToScreen = true;
-	composer = new THREE.EffectComposer( renderer );
-	composer.addPass( renderModel );
-	composer.addPass( effectBloom );
-	composer.addPass( effectFilm );
-
-	renderer.gammaInput = true;
-	renderer.gammaOutput = true;
 
 	// 
 	// Simple Glow
@@ -256,7 +201,7 @@ function init() {
 	particles = new THREE.Geometry()
   	var pMaterial = new THREE.PointsMaterial({
 		color: 0x333333,
-		size: 8,
+		size: 15,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
 		blending: THREE.AdditiveBlending,
 		transparent: true,
@@ -271,11 +216,33 @@ function init() {
 		pZ = ( Math.random() * 2 - 1 ) * radius;
 		particle = new THREE.Vector3(pX, pY, pZ);
 
-		particle.velocity = new THREE.Vector3(
-			Math.random() * 5,              
-			Math.random() * 5, 
-			Math.random() * 5
-			);            
+		mx = Math.random();
+		my = Math.random();
+		mz = Math.random();
+
+		var vx,vy,vz;
+
+		if(mx > 0.5){
+			vx = Math.random() * 5
+		}
+		else{
+			vx = Math.random() * -5
+		}
+
+		if(my > 0.5){
+			vy = Math.random() * 5
+		}
+		else{
+			vy = Math.random() * -5
+		}
+
+		if(mz > 0.5){
+			vz = Math.random() * 5
+		}
+		else{
+			vz = Math.random() * -5
+		}
+		particle.velocity = new THREE.Vector3(vx,vy,vz);            
 
 		// add it to the geometry
 		particles.vertices.push(particle);
@@ -311,7 +278,6 @@ function animate()
 }
 function update()
 {
-
 	controls.update();
 	stats.update();
 	eggGlow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, eggGlow.position );
@@ -329,8 +295,8 @@ function update()
 		//TODO: edit bound for y axis
 		// check if we need to reset
 		var rad = Math.acos(particle.y/-10)
-		var X_bound = ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 7;
-		var Y_bound = 7;
+		var X_bound = ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 6.5;
+		var Y_bound = 6.5;
 
 		if(particle.y > 9){
 			console.log(particle.y)
@@ -374,7 +340,7 @@ function update()
 function render() 
 {
 	renderer.clear();
-	// composer.render( 0.01 );
+	//composer.render( 0.001 );
 	renderer.render( scene, camera );
-	// composer.render()
+	//composer.render()
 }

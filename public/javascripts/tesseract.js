@@ -185,14 +185,14 @@ function init() {
 
 	// LIGHT
 
-	// spotlight #1 -- yellow, dark shadow
+	// spotlight #1
 	var spotlight = new THREE.SpotLight(0xffffff);
 	spotlight.position.set(-60,150,-30);
 	spotlight.angle = Math.PI/4;
 	spotlight.intensity = 1;
 	scene.add(spotlight);
 
-	// spotlight #2 -- red, light shadow
+	// spotlight #2
 	var spotlight2 = new THREE.SpotLight(0xffffff);
 	spotlight2.position.set(60,150,-60);
 	spotlight2.angle = Math.PI/4;

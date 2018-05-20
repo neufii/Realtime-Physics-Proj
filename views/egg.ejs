@@ -44,7 +44,6 @@
 	<script id="glowVertexShader" type="x-shader/x-vertex">
 	uniform vec3 viewVector;
 	uniform vec3 lightVector;
-	uniform float c;
 	uniform float p;
 	varying float intensity;
 	void main() 
@@ -56,7 +55,7 @@
 	    vec3 nnl2 = 2.0 * nnl;
 	    vec3 r = nnl2 - light;
 		vec3 n_view = normalize( viewVector );
-		intensity = pow( c - dot( r , n_view ), p );
+		intensity = pow( dot( r , n_view ), p );
 		
 	    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 	}
