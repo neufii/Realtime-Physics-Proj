@@ -5,7 +5,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 15;
+var num_particles = 50;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -85,14 +85,13 @@ function init() {
 		
 	var baseTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm2.jpg' );
 	baseTexture.wrapS = baseTexture.wrapT = THREE.RepeatWrapping;
-	var baseSpeed = 0.05;
-	var repeatS = repeatT = 1; 
+	var baseSpeed = 0.02;
 
 	var noiseTexture = textureLoader.load( '../images/egg/cloud.png' );
 	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
 	var noiseScale = 0.5;
 
-	var blendTexture = baseTexture;
+	var blendTexture = noiseTexture;
 	blendTexture.wrapS = blendTexture.wrapT = THREE.RepeatWrapping;
 	var blendSpeed = 0.0;
 	var blendOffset = 0.15;
@@ -105,8 +104,6 @@ function init() {
 	this.customUniforms = {
 		baseTexture: 	{ type: "t", value: baseTexture },
 		baseSpeed:		{ type: "f", value: baseSpeed },
-		repeatS:		{ type: "f", value: repeatS },
-		repeatT:		{ type: "f", value: repeatT },
 		noiseTexture:	{ type: "t", value: noiseTexture },
 		noiseScale:		{ type: "f", value: noiseScale },
 		blendTexture:	{ type: "t", value: blendTexture },
