@@ -65,7 +65,7 @@ function init() {
 
 	spotlight.shadow.mapSize.width = 1024;
 	spotlight.castShadow = true;
-	//scene.add(spotlight);
+	scene.add(spotlight);
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
 	//EGG
@@ -127,9 +127,7 @@ function init() {
 	eggMovingMaterial.transparent = true;
 	eggMovingMaterial.depthWrite = false;
 
-	eggTexture = new THREE.TextureLoader().load('../images/egg/iceflake.jpg' );
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
-		//map : eggTexture,
 		color: 0xff975b, 
 		transparent:true, 
 		opacity:0.5, 
@@ -234,9 +232,7 @@ function init() {
 	eggGlow.scale.multiplyScalar(1.001);
 	scene.add(eggGlow);
 
-	// 
 	// Simple Glow
-	// 
 	var spriteMap = new THREE.TextureLoader().load( '../images/tesseract/glow.png' );
 	var spriteMaterial = new THREE.SpriteMaterial( { 
 		map: spriteMap, 
@@ -246,7 +242,7 @@ function init() {
 	} );
 	var sprite = new THREE.Sprite( spriteMaterial );
 	sprite.scale.set(40, 40, 1)
-	//scene.add( sprite );
+	scene.add( sprite );
 }
 
 function onWindowResize() {
