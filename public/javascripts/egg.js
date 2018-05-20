@@ -5,7 +5,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 10;
+var num_particles = 15;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -68,11 +68,23 @@ function init() {
 	//scene.add(spotlight);
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
-	//LAVA
+	//EGG
+	var points = [];
+	for ( var deg = 0; deg <= 180; deg += 6 ) {
+    	var rad = Math.PI * deg / 180;
+    	var corx = Math.max((( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10),0);
+    	var cory = - Math.cos( rad ) *10
+    	var point = new THREE.Vector2(corx, cory);
+    	//console.log( point );
+    	points.push( point );
+	}
+	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
+
+	//TEXTURE
 	var textureLoader = new THREE.TextureLoader();
 		
-	var lavaTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm2.jpg' );
-	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
+	var baseTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm2.jpg' );
+	baseTexture.wrapS = baseTexture.wrapT = THREE.RepeatWrapping;
 	var baseSpeed = 0.05;
 	var repeatS = repeatT = 1; 
 
@@ -80,8 +92,8 @@ function init() {
 	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
 	var noiseScale = 0.5;
 
-	var blendTexture = lavaTexture;
-	blendTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
+	var blendTexture = baseTexture;
+	blendTexture.wrapS = blendTexture.wrapT = THREE.RepeatWrapping;
 	var blendSpeed = 0.0;
 	var blendOffset = 0.15;
 
@@ -90,9 +102,8 @@ function init() {
 	var bumpSpeed   = 0.15;
 	var bumpScale = 0.5;
 	
-	// use "this." to create global object
 	this.customUniforms = {
-		baseTexture: 	{ type: "t", value: lavaTexture },
+		baseTexture: 	{ type: "t", value: baseTexture },
 		baseSpeed:		{ type: "f", value: baseSpeed },
 		repeatS:		{ type: "f", value: repeatS },
 		repeatT:		{ type: "f", value: repeatT },
@@ -106,31 +117,17 @@ function init() {
 		time: 			{ type: "f", value: 1.0 }
 	};
 	
-	// create custom material from the shader code above
-	//   that is within specially labeled script tags
-	var customMaterial = new THREE.ShaderMaterial( 
+	var eggMovingMaterial = new THREE.ShaderMaterial( 
 	{
 	    uniforms: customUniforms,
 		vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
 		fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
 	}   );
 
-	customMaterial.transparent = true;
-	customMaterial.depthWrite = false;
-
-	var points = [];
-	for ( var deg = 0; deg <= 180; deg += 6 ) {
-    	var rad = Math.PI * deg / 180;
-    	var corx = Math.max((( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 10),0);
-    	var cory = - Math.cos( rad ) *10
-    	var point = new THREE.Vector2(corx, cory);
-    	//console.log( point );
-    	points.push( point );
-	}
+	eggMovingMaterial.transparent = true;
+	eggMovingMaterial.depthWrite = false;
 
 	eggTexture = new THREE.TextureLoader().load('../images/egg/iceflake.jpg' );
-
-	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
 		//map : eggTexture,
 		color: 0xff975b, 
@@ -145,17 +142,74 @@ function init() {
 	});
 	eggMaterial.depthWrite = false
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
-	egg = new THREE.Mesh( eggGeometry, customMaterial );
+	egg = new THREE.Mesh( eggGeometry, eggMovingMaterial );
 	egg.position.set(0,0,0);
 	egg.castShadow = true; 
 	camera.lookAt(egg.position);
-
-	smallEgg = egg.clone()
-	smallEgg.scale.set(1.001,1.001,1.001)
-	smallEgg.material = eggMaterial
 	scene.add(egg)
 
-	scene.add(smallEgg);
+
+	var colourEgg = egg.clone()
+	colourEgg.scale.set(1.001,1.001,1.001);
+	colourEgg.material = eggMaterial;
+	scene.add(colourEgg);
+
+	// Particle
+	particles = new THREE.Geometry()
+  	var pMaterial = new THREE.PointsMaterial({
+		color: 0x333333,
+		size: 15,
+		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
+		blending: THREE.AdditiveBlending,
+		transparent: true,
+		depthTest: false,
+	});
+
+	var radius = 4
+	for (var p = 0; p < num_particles; p++) {
+		pX = ( Math.random() * 2 - 1 ) * radius;
+		pY = ( Math.random() * 2 - 1 ) * radius;
+		pZ = ( Math.random() * 2 - 1 ) * radius;
+		particle = new THREE.Vector3(pX, pY, pZ);
+
+		mx = Math.random();
+		my = Math.random();
+		mz = Math.random();
+
+		var vx,vy,vz;
+
+		if(mx > 0.5){
+			vx = Math.random() * 5
+		}
+		else{
+			vx = Math.random() * -5
+		}
+
+		if(my > 0.5){
+			vy = Math.random() * 5
+		}
+		else{
+			vy = Math.random() * -5
+		}
+
+		if(mz > 0.5){
+			vz = Math.random() * 5
+		}
+		else{
+			vz = Math.random() * -5
+		}
+		particle.velocity = new THREE.Vector3(vx,vy,vz);            
+		particles.vertices.push(particle);
+	}
+
+	particleSystem = new THREE.Points(
+		particles,
+		pMaterial
+	);
+
+	particleSystem.sortParticles = true;
+	scene.add(particleSystem);
+
 
 
 	//Egg Glow	
@@ -192,73 +246,7 @@ function init() {
 	} );
 	var sprite = new THREE.Sprite( spriteMaterial );
 	sprite.scale.set(40, 40, 1)
-	scene.add( sprite );
-
-
-	// 
-	// Particle
-	// 
-	particles = new THREE.Geometry()
-  	var pMaterial = new THREE.PointsMaterial({
-		color: 0x333333,
-		size: 15,
-		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
-		blending: THREE.AdditiveBlending,
-		transparent: true,
-		depthTest: false,
-	});
-
-	var radius = 4
-	// now create the individual particles
-	for (var p = 0; p < num_particles; p++) {
-		pX = ( Math.random() * 2 - 1 ) * radius;
-		pY = ( Math.random() * 2 - 1 ) * radius;
-		pZ = ( Math.random() * 2 - 1 ) * radius;
-		particle = new THREE.Vector3(pX, pY, pZ);
-
-		mx = Math.random();
-		my = Math.random();
-		mz = Math.random();
-
-		var vx,vy,vz;
-
-		if(mx > 0.5){
-			vx = Math.random() * 5
-		}
-		else{
-			vx = Math.random() * -5
-		}
-
-		if(my > 0.5){
-			vy = Math.random() * 5
-		}
-		else{
-			vy = Math.random() * -5
-		}
-
-		if(mz > 0.5){
-			vz = Math.random() * 5
-		}
-		else{
-			vz = Math.random() * -5
-		}
-		particle.velocity = new THREE.Vector3(vx,vy,vz);            
-
-		// add it to the geometry
-		particles.vertices.push(particle);
-	}
-
-	// create the particle system
-	particleSystem = new THREE.Points(
-		particles,
-		pMaterial
-	);
-
-	particleSystem.sortParticles = true;
-
-	// add it to the scene
-	scene.add(particleSystem);
-
+	//scene.add( sprite );
 }
 
 function onWindowResize() {
@@ -291,9 +279,6 @@ function update()
 
 		// get the particle
 		var particle = particles.vertices[pCount];
-
-		//TODO: edit bound for y axis
-		// check if we need to reset
 		var rad = Math.acos(particle.y/-10)
 		var X_bound = ( 0.76 + .08 * Math.cos( rad ) ) * Math.sin( rad ) * 6.5;
 		var Y_bound = 6.5;
@@ -303,8 +288,6 @@ function update()
 			console.log(rad)
 			console.log(X_bound)
 		} 
-
-		//console.log(Y_bound)
 		if (particle.x + particle.velocity.x * dt> X_bound) {
 			particle.velocity.x = -1 * particle.velocity.x;
 		}
@@ -323,14 +306,12 @@ function update()
 		if (particle.y + particle.velocity.y * dt> Y_bound) {
 			particle.velocity.y = -1 * particle.velocity.y;
 		}
-		
 
 		// and the position
 		particle.x = particle.x + particle.velocity.x * dt
 		particle.y = particle.y + particle.velocity.y * dt
 		particle.z = particle.z + particle.velocity.z * dt
 	}
-
 	// flag to the particle system
 	// that we've changed its vertices.
 	particles.verticesNeedUpdate = true
