@@ -14,6 +14,15 @@ router.get('/glow', function(req, res, next) {
   res.render('tesseract_glow');
 });
 
+
+router.get('/shader', function(req, res, next) {
+  res.render('tesseract_shader');
+});
+
+router.get('/particle', function(req, res, next) {
+  res.render('tesseract_particle');
+});
+
 router.get('/volumetric', function(req, res, next) {
   res.render('volumetric');
 });

@@ -1,6 +1,6 @@
 var outline_shader = {
 	uniforms: {
-			"linewidth":  { type: "f", value: 0.1 },
+			"linewidth":  { type: "f", value: 0.5 },
 	},
 	vertex_shader: [
 			"uniform float linewidth;",
@@ -213,40 +213,6 @@ function init() {
 		side: THREE.BackSide 
 	});
 
-	// var h = 7.5
-	// var outlineGeometry = new THREE.BufferGeometry();
-	// 			var position = [];
-	// 			position.push(
-	// 				-h, -h, -h,
-	// 				-h, h, -h,
-	// 				-h, h, -h,
-	// 				h, h, -h,
-	// 				h, h, -h,
-	// 				h, -h, -h,
-	// 				h, -h, -h,
-	// 				-h, -h, -h,
-	// 				-h, -h, h,
-	// 				-h, h, h,
-	// 				-h, h, h,
-	// 				h, h, h,
-	// 				h, h, h,
-	// 				h, -h, h,
-	// 				h, -h, h,
-	// 				-h, -h, h,
-	// 				-h, -h, -h,
-	// 				-h, -h, h,
-	// 				-h, h, -h,
-	// 				-h, h, h,
-	// 				h, h, -h,
-	// 				h, h, h,
-	// 				h, -h, -h,
-	// 				h, -h, h
-	// 			 );
-	// outlineGeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( position, 3 ) );
-	// var lineSegments = new THREE.LineSegments( outlineGeometry, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 10 } ) );
-	// lineSegments.computeLineDistances();
-	// glowScene.add( lineSegments );
-
 	var borderMaterial = new THREE.ShaderMaterial({
 		uniforms: THREE.UniformsUtils.clone(outline_shader.uniforms),
 		vertexShader: outline_shader.vertex_shader,
@@ -260,7 +226,7 @@ function init() {
 	var outlineTesseract = new THREE.Mesh( tesseractGeometry, outlineMaterial );
 	outlineTesseract.position = tesseract.position;
 	outlineTesseract.scale.multiplyScalar(1.02);
-	glowScene.add( outlineTesseract );
+	// glowScene.add( outlineTesseract );
 
 	var blackTesseractGeometry = new THREE.BoxGeometry(15,15,15);
 	var blackTesseractMaterial = new THREE.MeshBasicMaterial( { 
@@ -269,7 +235,7 @@ function init() {
 	});
 	var blackTesseract = new THREE.Mesh( blackTesseractGeometry, blackTesseractMaterial );
 	blackTesseract.position.set(0,0,0);
-	glowScene.add( blackTesseract )
+	// glowScene.add( blackTesseract )
 
 }
 

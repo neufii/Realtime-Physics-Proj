@@ -396,7 +396,6 @@ function init() {
 	smokeParticleSystem.sortParticles = true;
 	// scene.add(smokeParticleSystem);
 
-
 	//////////////////////////////
 	// 													//
 	// 			GLOWING SECTION			//
