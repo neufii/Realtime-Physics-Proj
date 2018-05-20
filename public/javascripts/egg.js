@@ -113,6 +113,13 @@ function init() {
 	eggMovingMaterial.transparent = true;
 	eggMovingMaterial.depthWrite = false;
 
+	egg = new THREE.Mesh( eggGeometry, eggMovingMaterial );
+	egg.position.set(0,0,0);
+	egg.castShadow = true; 
+	camera.lookAt(egg.position);
+	scene.add(egg)
+
+
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
 		color: 0xff975b, 
 		transparent:true, 
@@ -126,12 +133,6 @@ function init() {
 	});
 	eggMaterial.depthWrite = false
 	eggMaterial.envMap.mapping = THREE.CubeRefractionMapping;
-	egg = new THREE.Mesh( eggGeometry, eggMovingMaterial );
-	egg.position.set(0,0,0);
-	egg.castShadow = true; 
-	camera.lookAt(egg.position);
-	scene.add(egg)
-
 
 	var colourEgg = egg.clone()
 	colourEgg.scale.set(1.001,1.001,1.001);
@@ -197,15 +198,15 @@ function init() {
 
 
 	//Egg Glow	
-	var customMaterial = new THREE.ShaderMaterial( 
-	{
-	    uniforms: 
-		{ 
+	this.glowUniform = { 
 			"p":   { type: "f", value: 8 },
 			glowColor: { type: "c", value: new THREE.Color(0xffffff) },
 			viewVector: { type: "v3", value: camera.position },
 			lightVector: {type: "v3", value: spotlight.position}
-		},
+		}
+	var customMaterial = new THREE.ShaderMaterial( 
+	{
+	    uniforms: glowUniform,
 		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
 		fragmentShader: document.getElementById( 'glowFragmentShader' ).textContent,
 		side: THREE.FrontSide,
@@ -219,7 +220,7 @@ function init() {
 	scene.add(eggGlow);
 
 	// Simple Glow
-	var spriteMap = new THREE.TextureLoader().load( '../images/tesseract/glow.png' );
+	var spriteMap = new THREE.TextureLoader().load( '../images/egg/glow.png' );
 	var spriteMaterial = new THREE.SpriteMaterial( { 
 		map: spriteMap, 
 		color: 0xfff1ba, 
@@ -290,14 +291,14 @@ function update()
 		}
 
 		// and the position
-		particle.x = particle.x + particle.velocity.x * dt
-		particle.y = particle.y + particle.velocity.y * dt
-		particle.z = particle.z + particle.velocity.z * dt
+		particle.x = particle.x + particle.velocity.x * dt;
+		particle.y = particle.y + particle.velocity.y * dt;
+		particle.z = particle.z + particle.velocity.z * dt;
 	}
 	// flag to the particle system
 	// that we've changed its vertices.
-	particles.verticesNeedUpdate = true
-	customUniforms.time.value += dt * 3
+	particles.verticesNeedUpdate = true;
+	customUniforms.time.value += dt * 3;
 
 }
 function render() 
