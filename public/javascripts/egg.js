@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 10
+var num_particles = 5;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -89,7 +89,7 @@ function init() {
 	// spotlight #3
 	var spotlight3 = new THREE.SpotLight(0xffffff);
 	spotlight3.position.set(150,80,-100);
-	spotlight3.intensity = 1;
+	spotlight3.intensity = 4;
 	spotlight3.castShadow = true;
 	spotlight3.shadow.mapSize.width = 1024; // default is 512
 	spotlight3.shadow.mapSize.height = 1024; // default is 512
@@ -117,10 +117,10 @@ function init() {
 	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
 	var noiseScale = 0.5;
 		
-	var lavaTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm.jpg' );
+	var lavaTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm2.jpg' );
 	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
 	var baseSpeed = 0.01;
-	var repeatS = repeatT = 2; 
+	var repeatS = repeatT = 1; 
 
 	var blendTexture = lavaTexture;
 	blendTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
@@ -175,7 +175,7 @@ function init() {
 	var eggGeometry = new THREE.LatheBufferGeometry(points,32);
 	var eggMaterial = new THREE.MeshPhongMaterial( { 
 		//map : eggTexture,
-		color: 0xff7900, 
+		color: 0xff975b, 
 		transparent:true, 
 		opacity:0.5, 
 		refractionRatio: 0.3,
