@@ -4,7 +4,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 5;
+var num_particles = 50;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -94,7 +94,7 @@ function init() {
 	spotlight3.shadow.mapSize.width = 1024; // default is 512
 	spotlight3.shadow.mapSize.height = 1024; // default is 512
 
-	//scene.add(spotlight3);
+	scene.add(spotlight3);
 
 	// change the direction this spotlight is facing
 	var lightTarget = new THREE.Object3D();
@@ -110,17 +110,17 @@ function init() {
 	//ADJUST SHADOW DARKNESS
 	scene.add( new THREE.AmbientLight( 0xffffff, 2 ) );
 
-	//console.log(document.getElementById( 'glowVertexShader' ).textContent)
 	//LAVA
 	var textureLoader = new THREE.TextureLoader();
-	var noiseTexture = textureLoader.load( '../images/egg/cloud.png' );
-	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
-	var noiseScale = 0.5;
 		
 	var lavaTexture = textureLoader.load( '../images/egg/yellowFlake-DarkSqSm2.jpg' );
 	lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
-	var baseSpeed = 0.01;
+	var baseSpeed = 0.05;
 	var repeatS = repeatT = 1; 
+
+	var noiseTexture = textureLoader.load( '../images/egg/cloud.png' );
+	noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping; 
+	var noiseScale = 0.5;
 
 	var blendTexture = lavaTexture;
 	blendTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
@@ -200,6 +200,7 @@ function init() {
 	scene.add(smallEgg);
 
 
+	//Egg Glow	
 	var customMaterial = new THREE.ShaderMaterial( 
 	{
 	    uniforms: 
@@ -207,7 +208,8 @@ function init() {
 			"c":   { type: "f", value: 0.0 },
 			"p":   { type: "f", value: 10 },
 			glowColor: { type: "c", value: new THREE.Color(0xffffff) },
-			viewVector: { type: "v3", value: camera.position }
+			viewVector: { type: "v3", value: camera.position },
+			lightVector: {type: "v3", value: spotlight3.position}
 		},
 		vertexShader:   document.getElementById( 'glowVertexShader'   ).textContent,
 		fragmentShader: document.getElementById( 'glowFragmentShader' ).textContent,
@@ -239,7 +241,7 @@ function init() {
 	var spriteMap = new THREE.TextureLoader().load( '../images/tesseract/glow.png' );
 	var spriteMaterial = new THREE.SpriteMaterial( { 
 		map: spriteMap, 
-		color: 0xffee55, 
+		color: 0xfff1ba, 
 		transparent: false, 
 		blending: THREE.AdditiveBlending 
 	} );
@@ -254,7 +256,7 @@ function init() {
 	particles = new THREE.Geometry()
   	var pMaterial = new THREE.PointsMaterial({
 		color: 0x333333,
-		size: 10,
+		size: 8,
 		map: new THREE.TextureLoader().load( "../images/particle/smokeparticle.png" ),
 		blending: THREE.AdditiveBlending,
 		transparent: true,
@@ -264,10 +266,10 @@ function init() {
 	var radius = 4
 	// now create the individual particles
 	for (var p = 0; p < num_particles; p++) {
-		pX = ( Math.random() * 2 - 1 ) * radius,
-		pY = ( Math.random() * 2 - 1 ) * radius - 3,
-		pZ = ( Math.random() * 2 - 1 ) * radius,
-		particle = new THREE.Vector3(pX, pY, pZ)
+		pX = ( Math.random() * 2 - 1 ) * radius;
+		pY = ( Math.random() * 2 - 1 ) * radius;
+		pZ = ( Math.random() * 2 - 1 ) * radius;
+		particle = new THREE.Vector3(pX, pY, pZ);
 
 		particle.velocity = new THREE.Vector3(
 			Math.random() * 5,              
