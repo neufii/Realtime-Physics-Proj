@@ -5,7 +5,7 @@ var tick = 0;
 
 // Particle
 var particleSystem, particleUniforms, particleGeometry, particles;
-var num_particles = 50;
+var num_particles = 30;
 var positions = [];
 var colors = [];
 var sizes = [];
@@ -93,24 +93,13 @@ function init() {
 
 	var blendTexture = noiseTexture;
 	blendTexture.wrapS = blendTexture.wrapT = THREE.RepeatWrapping;
-	var blendSpeed = 0.0;
-	var blendOffset = 0.15;
-
-	var bumpTexture = noiseTexture;
-	bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
-	var bumpSpeed   = 0.15;
-	var bumpScale = 0.5;
-	
 	this.customUniforms = {
 		baseTexture: 	{ type: "t", value: baseTexture },
 		baseSpeed:		{ type: "f", value: baseSpeed },
 		noiseTexture:	{ type: "t", value: noiseTexture },
 		noiseScale:		{ type: "f", value: noiseScale },
 		blendTexture:	{ type: "t", value: blendTexture },
-		blendSpeed: 	{ type: "f", value: blendSpeed },
-		blendOffset: 	{ type: "f", value: blendOffset },
-		bumpTexture:	{ type: "t", value: bumpTexture },
-		alpha: 			{ type: "f", value: 0.5 },
+		alpha: 			{ type: "f", value: 0.4 },
 		time: 			{ type: "f", value: 1.0 }
 	};
 	

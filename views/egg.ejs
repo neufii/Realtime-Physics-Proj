@@ -77,16 +77,14 @@
 		uniform sampler2D noiseTexture;
 		uniform float noiseScale;
 		uniform sampler2D blendTexture;
-		uniform float blendSpeed;
-		uniform float blendOffset;
 		uniform float time;
 		uniform float alpha;
 		varying vec2 vUv;
 		void main() 
 		{
 
-			vec2 T1 = vUv + vec2( 1, -1.5 ) * time * baseSpeed;
-			vec4 noise = texture2D(noiseTexture, T1);
+			vec2 timeShift = vUv + vec2( 1, -1.5 ) * time * baseSpeed;
+			vec4 noise = texture2D(noiseTexture, timeShift);
 			vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noise.r, noise.b );
 			vec4 baseColor = texture2D( baseTexture, uvNoiseTimeShift);
 			vec4 blendColor1 = texture2D( blendTexture, uvNoiseTimeShift);
